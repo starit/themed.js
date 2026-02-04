@@ -49,7 +49,7 @@ export abstract class BaseAIProvider implements AIProvider {
 
   constructor(config: AIProviderConfig) {
     this.config = {
-      timeout: 30000,
+      timeout: 60000, // 60 seconds for AI generation
       maxRetries: 3,
       ...config,
     };
@@ -94,7 +94,10 @@ export abstract class BaseAIProvider implements AIProvider {
     options: RequestInit
   ): Promise<Response> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+    const timeoutId = setTimeout(
+      () => controller.abort(new Error(`Request timeout after ${this.config.timeout}ms`)),
+      this.config.timeout
+    );
 
     try {
       const response = await fetch(url, {
@@ -102,6 +105,11 @@ export abstract class BaseAIProvider implements AIProvider {
         signal: controller.signal,
       });
       return response;
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error(`Request timeout after ${this.config.timeout}ms`);
+      }
+      throw error;
     } finally {
       clearTimeout(timeoutId);
     }
