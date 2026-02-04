@@ -1,13 +1,19 @@
 import { createThemed, type Theme } from '@themed.js/core';
 
-// Create themed instance
+// Vite loads env vars prefixed with VITE_ from .env; access via import.meta.env
+const apiKey = import.meta.env.VITE_OPENAI_API_KEY as string | undefined;
+
 const themed = createThemed({
   defaultTheme: 'light',
-  // Uncomment and add your API key to enable AI generation
-  // ai: {
-  //   provider: 'openai',
-  //   apiKey: 'sk-xxx',
-  // },
+  // Enable AI generation when VITE_OPENAI_API_KEY is set in .env
+  ...(apiKey && {
+    ai: {
+      provider: 'openai' as const,
+      apiKey,
+      model: 'gpt-4o-mini',
+      timeout: 60000,
+    },
+  }),
 });
 
 // Initialize and render

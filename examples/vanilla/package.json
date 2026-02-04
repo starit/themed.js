@@ -9,10 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@themed.js/core": "workspace:*"
+    "@themed.js/core": "workspace:*",
+    "dotenv": "^17.2.3"
   },
   "devDependencies": {
-    "vite": "^6.0.0",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0"
   }
 }
