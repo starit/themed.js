@@ -1,5 +1,8 @@
 # Themed.js
 
+[![npm version](https://img.shields.io/npm/v/@themed.js/core.svg)](https://www.npmjs.com/package/@themed.js/core)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 A powerful, framework-agnostic theme management library with AI-powered theme generation.
 
 ## Features
@@ -248,9 +251,21 @@ pnpm test
 
 # Start example apps
 cd examples/vanilla && pnpm dev  # Port 3000
-cd examples/react && pnpm dev    # Port 3001
-cd examples/vue && pnpm dev      # Port 3002
+cd examples/react && pnpm dev   # Port 3001
+cd examples/vue && pnpm dev     # Port 3002
 ```
+
+## Publishing (maintainers)
+
+1. Bump version in each package: `packages/*/package.json` (e.g. `0.1.0` → `0.1.1`).
+2. Build and publish all packages:
+   ```bash
+   pnpm build
+   pnpm publish -r --no-git-checks
+   ```
+3. Or publish a single package: `pnpm --filter @themed.js/core publish --no-git-checks`.
+
+**Note:** Scoped packages (`@themed.js/*`) are public via `publishConfig.access`. Ensure you are logged in to npm (`npm login`) and have access to the `themed.js` scope (create the org at npmjs.com if needed).
 
 ## License
 

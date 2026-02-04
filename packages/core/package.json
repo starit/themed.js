@@ -13,12 +13,12 @@
         "default": "./dist/index.js"
       },
       "require": {
-        "types": "./dist/index.d.cts",
+        "types": "./dist/index.d.ts",
         "default": "./dist/index.cjs"
       }
     }
   },
-  "files": ["dist"],
+  "files": ["dist", "README.md"],
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build",
@@ -32,11 +32,21 @@
     "ai",
     "design-tokens"
   ],
-  "author": "",
+  "author": "Starit <starit.public@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/themed-js/themed.js"
+    "url": "https://github.com/starit/themed.js"
+  },
+  "bugs": {
+    "url": "https://github.com/starit/themed.js/issues"
+  },
+  "homepage": "https://github.com/starit/themed.js#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "devDependencies": {
     "vite": "^6.0.0",

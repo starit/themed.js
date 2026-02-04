@@ -49,7 +49,7 @@ export abstract class BaseAIProvider implements AIProvider {
 
   constructor(config: AIProviderConfig) {
     this.config = {
-      timeout: 60000, // 60 seconds for AI generation
+      timeout: 30000,
       maxRetries: 3,
       ...config,
     };
