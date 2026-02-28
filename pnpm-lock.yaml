@@ -14,18 +14,21 @@ importers:
       '@types/node':
         specifier: ^22.0.0
         version: 22.19.7
+      happy-dom:
+        specifier: ^15.0.0
+        version: 15.11.7
       typescript:
-        specifier: ^5.6.0
-        version: 5.9.3
+        specifier: ~5.8.0
+        version: 5.8.2
       vite:
         specifier: ^6.0.0
         version: 6.4.1(@types/node@22.19.7)
       vite-plugin-dts:
         specifier: ^4.0.0
-        version: 4.5.4(@types/node@22.19.7)(rollup@4.57.1)(typescript@5.9.3)(vite@6.4.1(@types/node@22.19.7))
+        version: 4.5.4(@types/node@22.19.7)(rollup@4.57.1)(typescript@5.8.2)(vite@6.4.1(@types/node@22.19.7))
       vitest:
         specifier: ^2.0.0
-        version: 2.1.9(@types/node@22.19.7)
+        version: 2.1.9(@types/node@22.19.7)(happy-dom@15.11.7)
 
   examples/react:
     dependencies:
@@ -117,7 +120,7 @@ importers:
   packages/react:
     dependencies:
       '@themed.js/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
     devDependencies:
       '@types/react':
@@ -136,7 +139,7 @@ importers:
   packages/vue:
     dependencies:
       '@themed.js/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
     devDependencies:
       vite:
@@ -1037,6 +1040,10 @@ packages:
   electron-to-chromium@1.5.283:
     resolution: {integrity: sha512-3vifjt1HgrGW/h76UEeny+adYApveS9dH2h3p57JYzBSXJIKUJAvtmIytDKjcSCt9xHfrNCFJ7gts6vkhuq++w==}
 
+  entities@4.5.0:
+    resolution: {integrity: sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw==}
+    engines: {node: '>=0.12'}
+
   entities@7.0.1:
     resolution: {integrity: sha512-TWrgLOFUQTH994YUyl1yT4uyavY5nNB5muff+RtWaqNVCAK408b5ZnnbNAUEWLTCpum9w6arT70i1XdQ4UeOPA==}
     engines: {node: '>=0.12'}
@@ -1101,6 +1108,10 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+
+  happy-dom@15.11.7:
+    resolution: {integrity: sha512-KyrFvnl+J9US63TEzwoiJOQzZBJY7KgBushJA8X61DMbNsH+2ONkDuLDnCnwUiPTF42tLoEmrPyoqbenVA5zrg==}
+    engines: {node: '>=18.0.0'}
 
   has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
@@ -1488,6 +1499,14 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
+
+  webidl-conversions@7.0.0:
+    resolution: {integrity: sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g==}
+    engines: {node: '>=12'}
+
+  whatwg-mimetype@3.0.0:
+    resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
+    engines: {node: '>=12'}
 
   why-is-node-running@2.3.0:
     resolution: {integrity: sha512-hUrmaWBdVDcxvYqnyh09zunKzROWjbZTiNy8dBEjkS7ehEDQibXJ7XvlmtbwuTclUiIyN+CyXQD4Vmko8fNm8w==}
@@ -2137,6 +2156,19 @@ snapshots:
       de-indent: 1.0.2
       he: 1.2.0
 
+  '@vue/language-core@2.2.0(typescript@5.8.2)':
+    dependencies:
+      '@volar/language-core': 2.4.28
+      '@vue/compiler-dom': 3.5.27
+      '@vue/compiler-vue2': 2.7.16
+      '@vue/shared': 3.5.27
+      alien-signals: 0.4.14
+      minimatch: 9.0.5
+      muggle-string: 0.4.1
+      path-browserify: 1.0.1
+    optionalDependencies:
+      typescript: 5.8.2
+
   '@vue/language-core@2.2.0(typescript@5.9.3)':
     dependencies:
       '@volar/language-core': 2.4.28
@@ -2275,6 +2307,8 @@ snapshots:
 
   electron-to-chromium@1.5.283: {}
 
+  entities@4.5.0: {}
+
   entities@7.0.1: {}
 
   es-module-lexer@1.7.0: {}
@@ -2366,6 +2400,12 @@ snapshots:
   gensync@1.0.0-beta.2: {}
 
   graceful-fs@4.2.11: {}
+
+  happy-dom@15.11.7:
+    dependencies:
+      entities: 4.5.0
+      webidl-conversions: 7.0.0
+      whatwg-mimetype: 3.0.0
 
   has-flag@4.0.0: {}
 
@@ -2620,6 +2660,25 @@ snapshots:
       - supports-color
       - terser
 
+  vite-plugin-dts@4.5.4(@types/node@22.19.7)(rollup@4.57.1)(typescript@5.8.2)(vite@6.4.1(@types/node@22.19.7)):
+    dependencies:
+      '@microsoft/api-extractor': 7.56.0(@types/node@22.19.7)
+      '@rollup/pluginutils': 5.3.0(rollup@4.57.1)
+      '@volar/typescript': 2.4.28
+      '@vue/language-core': 2.2.0(typescript@5.8.2)
+      compare-versions: 6.1.1
+      debug: 4.4.3
+      kolorist: 1.8.0
+      local-pkg: 1.1.2
+      magic-string: 0.30.21
+      typescript: 5.8.2
+    optionalDependencies:
+      vite: 6.4.1(@types/node@22.19.7)
+    transitivePeerDependencies:
+      - '@types/node'
+      - rollup
+      - supports-color
+
   vite-plugin-dts@4.5.4(@types/node@22.19.7)(rollup@4.57.1)(typescript@5.9.3)(vite@6.4.1(@types/node@22.19.7)):
     dependencies:
       '@microsoft/api-extractor': 7.56.0(@types/node@22.19.7)
@@ -2660,7 +2719,7 @@ snapshots:
       '@types/node': 22.19.7
       fsevents: 2.3.3
 
-  vitest@2.1.9(@types/node@22.19.7):
+  vitest@2.1.9(@types/node@22.19.7)(happy-dom@15.11.7):
     dependencies:
       '@vitest/expect': 2.1.9
       '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@22.19.7))
@@ -2684,6 +2743,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 22.19.7
+      happy-dom: 15.11.7
     transitivePeerDependencies:
       - less
       - lightningcss
@@ -2712,6 +2772,10 @@ snapshots:
       '@vue/shared': 3.5.27
     optionalDependencies:
       typescript: 5.9.3
+
+  webidl-conversions@7.0.0: {}
+
+  whatwg-mimetype@3.0.0: {}
 
   why-is-node-running@2.3.0:
     dependencies:

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import {
   ThemeManager,
   type Theme,
-  type ThemeManagerOptions,
+  type ThemeChangedPayload,
   type AIOptions,
   type StorageOptions,
   type CSSOptions,
@@ -80,7 +80,7 @@ export function ThemeProvider({
     initManager();
 
     // Subscribe to events
-    const unsubChanged = manager.on('theme:changed', ({ theme, previousTheme }) => {
+    const unsubChanged = manager.on('theme:changed', ({ theme, previousTheme }: ThemeChangedPayload) => {
       setCurrentTheme(theme);
       onThemeChange?.(theme, previousTheme);
     });

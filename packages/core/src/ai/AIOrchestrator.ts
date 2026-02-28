@@ -1,9 +1,12 @@
-import type { AIOptions, AIProviderType } from '../types/options';
+import type { AIOptions } from '../types/options';
 import type { Theme } from '../types/theme';
 import type { ThemeTokens } from '../types/tokens';
 import type { AIProvider, AIProviderConfig } from './providers/base';
 import { OpenAIProvider } from './providers/openai';
 import { ClaudeProvider } from './providers/claude';
+import { GeminiProvider } from './providers/gemini';
+import { GroqProvider } from './providers/groq';
+import { MoonshotProvider } from './providers/moonshot';
 import { CustomProvider, type CustomProviderConfig } from './providers/custom';
 import { PromptEngine } from './PromptEngine';
 
@@ -31,6 +34,7 @@ export class AIOrchestrator {
     const config: AIProviderConfig = {
       apiKey: options.apiKey ?? '',
       model: options.model,
+      baseURL: options.baseURL,
       timeout: options.timeout,
       maxRetries: options.maxRetries,
     };
@@ -43,12 +47,13 @@ export class AIOrchestrator {
         return new ClaudeProvider(config);
 
       case 'gemini':
-        // Gemini uses OpenAI-compatible API
-        return new OpenAIProvider({
-          ...config,
-          baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai',
-          model: options.model ?? 'gemini-1.5-flash',
-        });
+        return new GeminiProvider(config);
+
+      case 'groq':
+        return new GroqProvider(config);
+
+      case 'moonshot':
+        return new MoonshotProvider(config);
 
       case 'custom':
         if (!options.endpoint) {

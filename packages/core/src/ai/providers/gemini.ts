@@ -1,9 +1,9 @@
 import { BaseAIProvider, type AIProviderConfig, type Message } from './base';
 
 /**
- * OpenAI API response structure
+ * Gemini API response structure (OpenAI-compatible format)
  */
-interface OpenAIResponse {
+interface GeminiResponse {
   id: string;
   object: string;
   created: number;
@@ -24,25 +24,71 @@ interface OpenAIResponse {
 }
 
 /**
- * OpenAI provider for AI theme generation
+ * Gemini provider for AI theme generation
+ * Uses Google's OpenAI-compatible API endpoint
+ *
+ * @see https://ai.google.dev/gemini-api/docs/openai
  */
-export class OpenAIProvider extends BaseAIProvider {
-  readonly name = 'openai';
+export class GeminiProvider extends BaseAIProvider {
+  readonly name = 'gemini';
   private baseURL: string;
   private model: string;
 
   constructor(config: AIProviderConfig) {
     super(config);
-    this.baseURL = config.baseURL ?? 'https://api.openai.com/v1';
-    this.model = config.model ?? 'gpt-5-mini';
+    this.baseURL =
+      config.baseURL ?? 'https://generativelanguage.googleapis.com/v1beta/openai';
+    this.model = config.model ?? 'gemini-2.5-flash';
   }
 
   /**
-   * Send a completion request to OpenAI
+   * Send a completion request to Gemini
    */
   async complete(messages: Message[]): Promise<string> {
     return this.retry(async () => {
-      const response = await this.fetchWithTimeout(`${this.baseURL}/chat/completions`, {
+      const response = await this.fetchWithTimeout(
+        `${this.baseURL}/chat/completions`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${this.config.apiKey}`,
+          },
+          body: JSON.stringify({
+            model: this.model,
+            messages: messages.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+            temperature: 0.7,
+            max_tokens: 2000,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Gemini API error: ${response.status} - ${error}`);
+      }
+
+      const data: GeminiResponse = await response.json();
+      const content = data.choices[0]?.message?.content;
+
+      if (!content) {
+        throw new Error('Gemini returned empty response');
+      }
+
+      return content;
+    });
+  }
+
+  /**
+   * Stream a completion request
+   */
+  async *stream(messages: Message[]): AsyncIterable<string> {
+    const response = await this.fetchWithTimeout(
+      `${this.baseURL}/chat/completions`,
+      {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,50 +102,14 @@ export class OpenAIProvider extends BaseAIProvider {
           })),
           temperature: 0.7,
           max_tokens: 2000,
+          stream: true,
         }),
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`OpenAI API error: ${response.status} - ${error}`);
       }
-
-      const data: OpenAIResponse = await response.json();
-      const content = data.choices[0]?.message?.content;
-
-      if (!content) {
-        throw new Error('OpenAI returned empty response');
-      }
-
-      return content;
-    });
-  }
-
-  /**
-   * Stream a completion request (for real-time updates)
-   */
-  async *stream(messages: Message[]): AsyncIterable<string> {
-    const response = await this.fetchWithTimeout(`${this.baseURL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.config.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: this.model,
-        messages: messages.map((m) => ({
-          role: m.role,
-          content: m.content,
-        })),
-        temperature: 0.7,
-        max_tokens: 2000,
-        stream: true,
-      }),
-    });
+    );
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`OpenAI API error: ${response.status} - ${error}`);
+      throw new Error(`Gemini API error: ${response.status} - ${error}`);
     }
 
     const reader = response.body?.getReader();

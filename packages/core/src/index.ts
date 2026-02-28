@@ -18,6 +18,9 @@ export { PromptEngine } from './ai/PromptEngine';
 export type { AIProvider, AIProviderConfig } from './ai/providers/base';
 export { OpenAIProvider } from './ai/providers/openai';
 export { ClaudeProvider } from './ai/providers/claude';
+export { GeminiProvider } from './ai/providers/gemini';
+export { GroqProvider } from './ai/providers/groq';
+export { MoonshotProvider } from './ai/providers/moonshot';
 export { CustomProvider } from './ai/providers/custom';
 
 // Storage

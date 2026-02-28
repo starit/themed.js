@@ -6,7 +6,6 @@ import type {
   AIOptions,
   StorageOptions,
   CSSOptions,
-  defaultOptions,
 } from './types/options';
 import { createTheme } from './types/theme';
 import { EventBus } from './EventBus';

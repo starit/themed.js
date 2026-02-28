@@ -12,11 +12,9 @@ export interface StorageKeys {
  * LocalStorage adapter for theme persistence
  */
 export class LocalStorageAdapter {
-  private prefix: string;
   private keys: StorageKeys;
 
   constructor(prefix = 'themed') {
-    this.prefix = prefix;
     this.keys = {
       activeTheme: `${prefix}:activeTheme`,
       themes: `${prefix}:themes`,

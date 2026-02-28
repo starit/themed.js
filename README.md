@@ -161,18 +161,40 @@ Themed.js injects CSS variables that you can use in your stylesheets:
 Themed.js supports multiple AI providers:
 
 ```typescript
-// OpenAI
+// OpenAI (default: gpt-5-mini)
 ai: {
   provider: 'openai',
   apiKey: 'sk-xxx',
-  model: 'gpt-4o-mini', // optional
+  model: 'gpt-5-mini', // optional: gpt-5.2, gpt-5-mini, gpt-4o, gpt-4o-mini
 }
 
-// Claude
+// Claude (default: claude-sonnet-4-6)
 ai: {
   provider: 'claude',
   apiKey: 'sk-xxx',
-  model: 'claude-3-5-sonnet-20241022', // optional
+  model: 'claude-sonnet-4-6', // optional: claude-opus-4-6, claude-haiku-4-5
+}
+
+// Google Gemini (default: gemini-2.5-flash)
+ai: {
+  provider: 'gemini',
+  apiKey: 'xxx', // from Google AI Studio
+  model: 'gemini-2.5-flash', // optional: gemini-2.5-pro, gemini-2.0-flash
+}
+
+// Groq - Llama models (default: llama-3.3-70b-versatile)
+ai: {
+  provider: 'groq',
+  apiKey: 'gsk_xxx', // from console.groq.com
+  model: 'llama-3.3-70b-versatile', // optional: llama3-70b-8192
+}
+
+// Moonshot/Kimi (default: kimi-k2-turbo-preview)
+ai: {
+  provider: 'moonshot',
+  apiKey: 'xxx', // from platform.moonshot.ai
+  model: 'kimi-k2-turbo-preview', // optional: kimi-k2.5, kimi-k2-0905-preview
+  baseURL: 'https://api.moonshot.cn/v1', // optional: use .cn for China
 }
 
 // Custom endpoint

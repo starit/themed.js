@@ -1,4 +1,4 @@
-import { inject, computed, ref, type ComputedRef, type Ref } from 'vue';
+import { inject, computed, ref, type ComputedRef } from 'vue';
 import type { Theme } from '@themed.js/core';
 import { THEMED_INJECTION_KEY } from '../keys';
 

@@ -1,9 +1,9 @@
-import type { App, Ref } from 'vue';
-import { ref, readonly, shallowRef } from 'vue';
+import type { App } from 'vue';
+import { ref, shallowRef } from 'vue';
 import {
   ThemeManager,
   type Theme,
-  type ThemeManagerOptions,
+  type ThemeChangedPayload,
   type AIOptions,
   type StorageOptions,
   type CSSOptions,
@@ -77,7 +77,7 @@ export const themedPlugin = {
     });
 
     // Subscribe to events
-    manager.on('theme:changed', ({ theme: newTheme }) => {
+    manager.on('theme:changed', ({ theme: newTheme }: ThemeChangedPayload) => {
       theme.value = newTheme;
     });
 

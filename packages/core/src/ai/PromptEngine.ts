@@ -311,11 +311,8 @@ Remember: Respond with ONLY the complete JSON object (including both colors and 
    */
   private generateFallbackColor(
     key: keyof ColorTokens,
-    colors: Record<string, unknown>
+    _colors: Record<string, unknown>
   ): string {
-    const primary = (colors.primary as string) ?? '#6366f1';
-    const background = (colors.background as string) ?? '#ffffff';
-
     // Fallback color map
     const fallbacks: Record<keyof ColorTokens, string> = {
       primary: '#6366f1',

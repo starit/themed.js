@@ -4,7 +4,13 @@ import type { Theme } from './theme';
 /**
  * AI provider type identifiers
  */
-export type AIProviderType = 'openai' | 'claude' | 'gemini' | 'custom';
+export type AIProviderType =
+  | 'openai'
+  | 'claude'
+  | 'gemini'
+  | 'groq'
+  | 'moonshot'
+  | 'custom';
 
 /**
  * AI configuration options
@@ -16,6 +22,8 @@ export interface AIOptions {
   apiKey?: string;
   /** Model to use */
   model?: string;
+  /** Custom API base URL (for providers that support it, e.g. moonshot .cn) */
+  baseURL?: string;
   /** Custom API endpoint (for custom provider) */
   endpoint?: string;
   /** Request timeout in milliseconds */
