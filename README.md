@@ -197,6 +197,13 @@ ai: {
   baseURL: 'https://api.moonshot.cn/v1', // optional: use .cn for China
 }
 
+// DeepSeek (default: deepseek-chat)
+ai: {
+  provider: 'deepseek',
+  apiKey: 'xxx', // from platform.deepseek.com
+  model: 'deepseek-chat', // optional: deepseek-reasoner
+}
+
 // Custom endpoint
 ai: {
   provider: 'custom',

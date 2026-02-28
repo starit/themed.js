@@ -7,6 +7,7 @@ import { ClaudeProvider } from './providers/claude';
 import { GeminiProvider } from './providers/gemini';
 import { GroqProvider } from './providers/groq';
 import { MoonshotProvider } from './providers/moonshot';
+import { DeepSeekProvider } from './providers/deepseek';
 import { CustomProvider, type CustomProviderConfig } from './providers/custom';
 import { PromptEngine } from './PromptEngine';
 
@@ -54,6 +55,9 @@ export class AIOrchestrator {
 
       case 'moonshot':
         return new MoonshotProvider(config);
+
+      case 'deepseek':
+        return new DeepSeekProvider(config);
 
       case 'custom':
         if (!options.endpoint) {

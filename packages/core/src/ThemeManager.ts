@@ -254,6 +254,18 @@ export class ThemeManager {
   }
 
   /**
+   * Get AI configuration info (provider and model) for display
+   */
+  getAIConfig(): { provider: string; model?: string } | null {
+    const ai = this.options.ai;
+    if (!ai) return null;
+
+    const provider =
+      typeof ai.provider === 'string' ? ai.provider : ai.provider.name;
+    return { provider, model: ai.model };
+  }
+
+  /**
    * Get the storage manager instance
    */
   getStorageManager(): StorageManager | null {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTheme, useAITheme } from '@themed.js/react';
 
 function App() {
@@ -42,8 +42,21 @@ function ThemeSelector() {
   );
 }
 
+function formatProviderName(provider: string): string {
+  const names: Record<string, string> = {
+    openai: 'OpenAI',
+    claude: 'Claude',
+    gemini: 'Gemini',
+    groq: 'Groq',
+    moonshot: 'Moonshot',
+    deepseek: 'DeepSeek',
+    custom: 'Custom',
+  };
+  return names[provider] ?? provider;
+}
+
 function AIGenerator() {
-  const { generate, isGenerating, error, isConfigured } = useAITheme();
+  const { generate, isGenerating, error, isConfigured, modelInfo } = useAITheme();
   const [prompt, setPrompt] = useState('');
 
   const handleGenerate = async () => {
@@ -59,7 +72,15 @@ function AIGenerator() {
 
   return (
     <div className="ai-section">
-      <h2>AI Theme Generator</h2>
+      <div className="ai-section-header">
+        <h2>AI Theme Generator</h2>
+        {modelInfo && (
+          <span className="model-badge">
+            {formatProviderName(modelInfo.provider)}
+            {modelInfo.model && <span className="model-name"> · {modelInfo.model}</span>}
+          </span>
+        )}
+      </div>
       <div className="ai-input-group">
         <input
           type="text"
@@ -86,6 +107,36 @@ function AIGenerator() {
   );
 }
 
+function toHexDisplay(value: string): string {
+  const hex = /^#?([a-f\d]{6}|[a-f\d]{3})$/i.exec(value);
+  if (hex) return value.startsWith('#') ? value : `#${value}`;
+  const rgb = /^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i.exec(value);
+  if (rgb) {
+    const r = Number(rgb[1]).toString(16).padStart(2, '0');
+    const g = Number(rgb[2]).toString(16).padStart(2, '0');
+    const b = Number(rgb[3]).toString(16).padStart(2, '0');
+    return `#${r}${g}${b}`;
+  }
+  return value;
+}
+
+function downloadThemeColors(theme: { name: string; id: string }, colors: Record<string, string>) {
+  const data = {
+    theme: { name: theme.name, id: theme.id },
+    colors,
+    exportedAt: new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: 'application/json',
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${theme.name.replace(/\s+/g, '-')}-colors.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function ColorPreview() {
   const { theme } = useTheme();
 
@@ -93,16 +144,26 @@ function ColorPreview() {
     return <div className="card">No theme selected</div>;
   }
 
-  const colors = Object.entries(theme.tokens.colors).slice(0, 12);
+  const colors = Object.entries(theme.tokens.colors);
 
   return (
     <div className="card">
-      <h3>Current Theme: {theme.name}</h3>
+      <div className="card-header">
+        <h3>Current Theme: {theme.name}</h3>
+        <button
+          type="button"
+          className="download-btn"
+          onClick={() => downloadThemeColors(theme, theme.tokens.colors)}
+        >
+          Download JSON
+        </button>
+      </div>
       <div className="color-preview">
         {colors.map(([name, value]) => (
           <div key={name} className="color-swatch">
             <div className="swatch" style={{ backgroundColor: value }} />
             <span className="label">{formatColorName(name)}</span>
+            <span className="hex">{toHexDisplay(value)}</span>
           </div>
         ))}
       </div>

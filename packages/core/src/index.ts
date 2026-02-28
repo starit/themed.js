@@ -21,6 +21,7 @@ export { ClaudeProvider } from './ai/providers/claude';
 export { GeminiProvider } from './ai/providers/gemini';
 export { GroqProvider } from './ai/providers/groq';
 export { MoonshotProvider } from './ai/providers/moonshot';
+export { DeepSeekProvider } from './ai/providers/deepseek';
 export { CustomProvider } from './ai/providers/custom';
 
 // Storage

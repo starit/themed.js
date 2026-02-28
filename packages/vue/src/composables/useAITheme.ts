@@ -16,6 +16,8 @@ export interface UseAIThemeReturn {
   error: ComputedRef<Error | null>;
   /** Whether AI is configured */
   isConfigured: ComputedRef<boolean>;
+  /** Current AI provider and model info for display */
+  modelInfo: ComputedRef<{ provider: string; model?: string } | null>;
 }
 
 /**
@@ -66,6 +68,7 @@ export function useAITheme(): UseAIThemeReturn {
   const isGenerating = computed(() => injection.isGenerating || localIsGenerating.value);
   const error = computed(() => injection.aiError || localError.value);
   const isConfigured = computed(() => injection.isAIConfigured);
+  const modelInfo = computed(() => injection.modelInfo);
 
   const generate = async (prompt: string): Promise<Theme> => {
     localIsGenerating.value = true;
@@ -112,5 +115,6 @@ export function useAITheme(): UseAIThemeReturn {
     isGenerating,
     error,
     isConfigured,
+    modelInfo,
   };
 }

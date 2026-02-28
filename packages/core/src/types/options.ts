@@ -10,6 +10,7 @@ export type AIProviderType =
   | 'gemini'
   | 'groq'
   | 'moonshot'
+  | 'deepseek'
   | 'custom';
 
 /**

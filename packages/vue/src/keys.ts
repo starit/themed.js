@@ -12,6 +12,7 @@ export interface ThemedInjection {
   isGenerating: boolean;
   aiError: Error | null;
   isAIConfigured: boolean;
+  modelInfo: { provider: string; model?: string } | null;
 }
 
 /**

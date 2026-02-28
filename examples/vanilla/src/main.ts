@@ -68,18 +68,60 @@ function updateActiveButton() {
   });
 }
 
+// Format color value to hex display (ensure # prefix)
+function toHexDisplay(value: string): string {
+  const hex = /^#?([a-f\d]{6}|[a-f\d]{3})$/i.exec(value);
+  if (hex) return value.startsWith('#') ? value : `#${value}`;
+  const rgb = /^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i.exec(value);
+  if (rgb) {
+    const r = Number(rgb[1]).toString(16).padStart(2, '0');
+    const g = Number(rgb[2]).toString(16).padStart(2, '0');
+    const b = Number(rgb[3]).toString(16).padStart(2, '0');
+    return `#${r}${g}${b}`;
+  }
+  return value;
+}
+
+// Download theme colors as JSON
+function downloadThemeColors() {
+  const theme = themed.getActive();
+  if (!theme) return;
+
+  const data = {
+    theme: { name: theme.name, id: theme.id },
+    colors: theme.tokens.colors,
+    exportedAt: new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: 'application/json',
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${theme.name.replace(/\s+/g, '-')}-colors.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // Render color preview
 function renderColorPreview() {
   const container = document.getElementById('color-preview')!;
+  const cardHeader = document.getElementById('color-card-header')!;
+  const downloadBtn = document.getElementById('download-colors')!;
   const theme = themed.getActive();
 
   if (!theme) {
     container.innerHTML = '<p>No theme selected</p>';
+    (cardHeader.querySelector('h3') as HTMLElement).textContent = 'Current Theme Colors';
+    (downloadBtn as HTMLButtonElement).style.display = 'none';
     return;
   }
 
   const colors = theme.tokens.colors;
-  const colorEntries = Object.entries(colors).slice(0, 12); // Show first 12 colors
+  const colorEntries = Object.entries(colors);
+
+  (cardHeader.querySelector('h3') as HTMLElement).textContent = `Current Theme: ${theme.name}`;
+  (downloadBtn as HTMLButtonElement).style.display = '';
 
   container.innerHTML = colorEntries
     .map(
@@ -87,6 +129,7 @@ function renderColorPreview() {
       <div class="color-swatch">
         <div class="swatch" style="background-color: ${value}"></div>
         <span class="label">${formatColorName(name)}</span>
+        <span class="hex">${toHexDisplay(value)}</span>
       </div>
     `
     )
@@ -98,11 +141,38 @@ function formatColorName(name: string): string {
   return name.replace(/([A-Z])/g, ' $1').trim();
 }
 
+// Format provider name for display
+function formatProviderName(provider: string): string {
+  const names: Record<string, string> = {
+    openai: 'OpenAI',
+    claude: 'Claude',
+    gemini: 'Gemini',
+    groq: 'Groq',
+    moonshot: 'Moonshot',
+    deepseek: 'DeepSeek',
+    custom: 'Custom',
+  };
+  return names[provider] ?? provider;
+}
+
 // Setup AI generation
 function setupAIGeneration() {
   const input = document.getElementById('ai-prompt') as HTMLInputElement;
   const button = document.getElementById('ai-generate') as HTMLButtonElement;
   const status = document.getElementById('status')!;
+  const modelBadge = document.getElementById('model-badge')!;
+
+  // Display model info
+  const aiConfig = themed.getAIConfig();
+  if (aiConfig) {
+    const providerName = formatProviderName(aiConfig.provider);
+    modelBadge.innerHTML = aiConfig.model
+      ? `${providerName} <span class="model-name">· ${aiConfig.model}</span>`
+      : providerName;
+    modelBadge.style.display = '';
+  } else {
+    modelBadge.style.display = 'none';
+  }
 
   // Check if AI is configured
   const isAIConfigured = themed.getAIOrchestrator() !== null;
@@ -149,6 +219,9 @@ function setupAIGeneration() {
     }
   });
 }
+
+// Setup download button
+document.getElementById('download-colors')!.addEventListener('click', downloadThemeColors);
 
 // Start the app
 init();

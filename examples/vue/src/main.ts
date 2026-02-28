@@ -12,9 +12,9 @@ app.use(themedPlugin, {
   defaultTheme: 'light',
   ...(apiKey && {
     ai: {
-      provider: 'openai',
+      provider: 'deepseek',
       apiKey,
-      model: 'gpt-4o-mini',
+      model: 'deepseek-chat',
       timeout: 60000,
     },
   }),

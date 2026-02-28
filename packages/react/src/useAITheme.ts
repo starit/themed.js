@@ -16,6 +16,8 @@ export interface UseAIThemeReturn {
   error: Error | null;
   /** Whether AI is configured */
   isConfigured: boolean;
+  /** Current AI provider and model info for display */
+  modelInfo: { provider: string; model?: string } | null;
 }
 
 /**

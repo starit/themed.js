@@ -110,6 +110,9 @@ export const themedPlugin = {
       get isAIConfigured() {
         return manager.getAIOrchestrator() !== null;
       },
+      get modelInfo() {
+        return manager.getAIConfig();
+      },
     };
 
     app.provide(THEMED_INJECTION_KEY, injection);

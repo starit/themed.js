@@ -166,6 +166,7 @@ export function ThemeProvider({
       isGenerating,
       error: aiError,
       isConfigured: manager.getAIOrchestrator() !== null,
+      modelInfo: manager.getAIConfig(),
     }),
     [generate, adjust, isGenerating, aiError, manager]
   );
