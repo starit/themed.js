@@ -18,6 +18,8 @@ export interface UseAIThemeReturn {
   isConfigured: ComputedRef<boolean>;
   /** Current AI provider and model info for display */
   modelInfo: ComputedRef<{ provider: string; model?: string } | null>;
+  /** Configure AI at runtime (e.g. when user enters API key) */
+  configureAI: (options: import('@themed.js/core').AIOptions) => void;
 }
 
 /**
@@ -116,5 +118,6 @@ export function useAITheme(): UseAIThemeReturn {
     error,
     isConfigured,
     modelInfo,
+    configureAI: injection.configureAI,
   };
 }

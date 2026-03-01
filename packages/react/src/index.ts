@@ -12,4 +12,5 @@ export type {
   ColorTokens,
   TypographyTokens,
   AIProviderConfig,
+  AIOptions,
 } from '@themed.js/core';

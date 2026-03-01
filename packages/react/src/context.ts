@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import type { ThemeManager, Theme } from '@themed.js/core';
+import type { AIOptions } from '@themed.js/core';
 
 /**
  * Theme context value
@@ -23,6 +24,8 @@ export interface AIThemeContextValue {
   generate: (prompt: string) => Promise<Theme>;
   /** Adjust the current theme */
   adjust: (instruction: string) => Promise<Theme>;
+  /** Configure AI at runtime (e.g. when user enters API key) */
+  configureAI: (options: AIOptions) => void;
   /** Whether AI is currently generating */
   isGenerating: boolean;
   /** Last error from AI generation */

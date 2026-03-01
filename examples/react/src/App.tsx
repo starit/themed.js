@@ -1,13 +1,145 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme, useAITheme } from '@themed.js/react';
+
+const AI_CONFIG_STORAGE_KEY = 'themed-demo-ai-config';
+
+const PROVIDERS = [
+  { value: 'openai', label: 'OpenAI', model: 'gpt-4o-mini' },
+  { value: 'claude', label: 'Claude', model: 'claude-sonnet-4-6' },
+  { value: 'gemini', label: 'Gemini', model: 'gemini-2.5-flash' },
+  { value: 'groq', label: 'Groq', model: 'llama-3.3-70b-versatile' },
+  { value: 'moonshot', label: 'Moonshot', model: 'kimi-k2-turbo-preview' },
+  { value: 'deepseek', label: 'DeepSeek', model: 'deepseek-chat' },
+] as const;
 
 function App() {
   return (
     <div className="container">
       <Header />
       <ThemeSelector />
+      <AIConfigPanel />
       <AIGenerator />
       <ColorPreview />
+    </div>
+  );
+}
+
+function AIConfigPanel() {
+  const { configureAI, isConfigured, modelInfo } = useAITheme();
+  const [apiKey, setApiKey] = useState('');
+  const [provider, setProvider] = useState<typeof PROVIDERS[number]['value']>('openai');
+  const [remember, setRemember] = useState(true);
+  const [expanded, setExpanded] = useState(!isConfigured);
+
+  // Load saved config on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(AI_CONFIG_STORAGE_KEY);
+      if (saved) {
+        const { apiKey: key, provider: p, model } = JSON.parse(saved);
+        if (key) {
+          setApiKey(key);
+          setProvider(p || 'openai');
+          configureAI({
+            provider: p || 'openai',
+            apiKey: key,
+            model: model || PROVIDERS.find((x) => x.value === p)?.model,
+            timeout: 60000,
+          });
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  }, []);
+
+  const handleSave = () => {
+    if (!apiKey.trim()) return;
+    const p = PROVIDERS.find((x) => x.value === provider);
+    configureAI({
+      provider,
+      apiKey: apiKey.trim(),
+      model: p?.model,
+      timeout: 60000,
+    });
+    if (remember) {
+      localStorage.setItem(
+        AI_CONFIG_STORAGE_KEY,
+        JSON.stringify({ apiKey: apiKey.trim(), provider, model: p?.model })
+      );
+    } else {
+      localStorage.removeItem(AI_CONFIG_STORAGE_KEY);
+    }
+    setExpanded(false);
+  };
+
+  const handleClear = () => {
+    localStorage.removeItem(AI_CONFIG_STORAGE_KEY);
+    window.location.reload();
+  };
+
+  return (
+    <div className="ai-config-section">
+      <button
+        type="button"
+        className="ai-config-toggle"
+        onClick={() => setExpanded(!expanded)}
+      >
+        {expanded ? '▼' : '▶'} API Key {isConfigured ? `(${modelInfo?.provider ?? 'configured'})` : '(not set)'}
+      </button>
+      {expanded && (
+        <div className="ai-config-form">
+          <p className="ai-config-hint">
+            Enter your API key to enable AI theme generation. It stays in your browser only.
+          </p>
+          <div className="ai-config-row">
+            <select
+              className="ai-config-select"
+              value={provider}
+              onChange={(e) => setProvider(e.target.value as typeof provider)}
+            >
+              {PROVIDERS.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+            <input
+              type="password"
+              className="ai-config-input"
+              placeholder="API Key"
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+            />
+          </div>
+          <div className="ai-config-actions">
+            <label className="ai-config-remember">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+              />
+              Remember (localStorage)
+            </label>
+            <div className="ai-config-buttons">
+              {isConfigured && (
+                <button type="button" className="ai-config-btn secondary" onClick={handleClear}>
+                  Clear
+                </button>
+              )}
+              <button
+                type="button"
+                className="ai-config-btn"
+                onClick={handleSave}
+                disabled={!apiKey.trim()}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

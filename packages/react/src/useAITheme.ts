@@ -10,6 +10,8 @@ export interface UseAIThemeReturn {
   generate: (prompt: string) => Promise<Theme>;
   /** Adjust the current theme based on instructions */
   adjust: (instruction: string) => Promise<Theme>;
+  /** Configure AI at runtime (e.g. when user enters API key) */
+  configureAI: (options: import('@themed.js/core').AIOptions) => void;
   /** Whether the AI is currently generating a theme */
   isGenerating: boolean;
   /** Last error from AI generation */

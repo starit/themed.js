@@ -1,9 +1,79 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useTheme, useAITheme } from '@themed.js/vue';
 
+const AI_CONFIG_STORAGE_KEY = 'themed-demo-ai-config';
+
+const PROVIDERS = [
+  { value: 'openai', label: 'OpenAI', model: 'gpt-4o-mini' },
+  { value: 'claude', label: 'Claude', model: 'claude-sonnet-4-6' },
+  { value: 'gemini', label: 'Gemini', model: 'gemini-2.5-flash' },
+  { value: 'groq', label: 'Groq', model: 'llama-3.3-70b-versatile' },
+  { value: 'moonshot', label: 'Moonshot', model: 'kimi-k2-turbo-preview' },
+  { value: 'deepseek', label: 'DeepSeek', model: 'deepseek-chat' },
+] as const;
+
 const { theme, themes, apply } = useTheme();
-const { generate, isGenerating, error, isConfigured, modelInfo } = useAITheme();
+const { generate, isGenerating, error, isConfigured, modelInfo, configureAI } = useAITheme();
+
+const apiKey = ref('');
+const provider = ref<(typeof PROVIDERS)[number]['value']>('openai');
+const remember = ref(true);
+const configExpanded = ref(true);
+
+onMounted(() => {
+  try {
+    const saved = localStorage.getItem(AI_CONFIG_STORAGE_KEY);
+    if (saved) {
+      const { apiKey: key, provider: p, model } = JSON.parse(saved);
+      if (key) {
+        apiKey.value = key;
+        provider.value = p || 'openai';
+        const prov = PROVIDERS.find((x) => x.value === (p || 'openai'));
+        configureAI({
+          provider: p || 'openai',
+          apiKey: key,
+          model: model || prov?.model,
+          timeout: 60000,
+        });
+        configExpanded.value = false;
+        return;
+      }
+    }
+  } catch {
+    // Ignore
+  }
+  configExpanded.value = true;
+});
+
+const handleSaveConfig = () => {
+  if (!apiKey.value.trim()) return;
+  const prov = PROVIDERS.find((x) => x.value === provider.value);
+  configureAI({
+    provider: provider.value,
+    apiKey: apiKey.value.trim(),
+    model: prov?.model,
+    timeout: 60000,
+  });
+  if (remember.value) {
+    localStorage.setItem(
+      AI_CONFIG_STORAGE_KEY,
+      JSON.stringify({
+        apiKey: apiKey.value.trim(),
+        provider: provider.value,
+        model: prov?.model,
+      })
+    );
+  } else {
+    localStorage.removeItem(AI_CONFIG_STORAGE_KEY);
+  }
+  configExpanded.value = false;
+};
+
+const handleClearConfig = () => {
+  localStorage.removeItem(AI_CONFIG_STORAGE_KEY);
+  window.location.reload();
+};
 
 const formatProviderName = (provider: string): string => {
   const names: Record<string, string> = {
@@ -79,6 +149,65 @@ const downloadThemeColors = () => {
       A powerful theme management library with AI-powered theme generation.
       Click the buttons below to switch themes, or describe a theme to generate with AI.
     </p>
+
+    <!-- API Key Config -->
+    <div class="ai-config-section">
+      <button
+        type="button"
+        class="ai-config-toggle"
+        @click="configExpanded = !configExpanded"
+      >
+        {{ configExpanded ? '▼' : '▶' }} API Key
+        {{ isConfigured ? `(${modelInfo?.provider ?? 'configured'})` : '(not set)' }}
+      </button>
+      <div v-show="configExpanded" class="ai-config-form">
+        <p class="ai-config-hint">
+          Enter your API key to enable AI theme generation. It stays in your browser only.
+        </p>
+        <div class="ai-config-row">
+          <select v-model="provider" class="ai-config-select">
+            <option
+              v-for="p in PROVIDERS"
+              :key="p.value"
+              :value="p.value"
+            >
+              {{ p.label }}
+            </option>
+          </select>
+          <input
+            v-model="apiKey"
+            type="password"
+            class="ai-config-input"
+            placeholder="API Key"
+            @keydown.enter="handleSaveConfig"
+          />
+        </div>
+        <div class="ai-config-actions">
+          <label class="ai-config-remember">
+            <input v-model="remember" type="checkbox" />
+            Remember (localStorage)
+          </label>
+          <div class="ai-config-buttons">
+            <button
+              v-if="isConfigured"
+              type="button"
+              class="ai-config-btn secondary"
+              @click="handleClearConfig"
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              class="ai-config-btn"
+              :disabled="!apiKey.trim()"
+              @click="handleSaveConfig"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Theme Selector -->
     <div class="theme-selector">

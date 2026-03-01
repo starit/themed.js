@@ -68,6 +68,7 @@ export const themedPlugin = {
     const initialized = ref(false);
     const isGenerating = ref(false);
     const aiError = shallowRef<Error | null>(null);
+    const aiConfigVersion = ref(0);
 
     // Initialize manager
     manager.init().then(() => {
@@ -89,6 +90,12 @@ export const themedPlugin = {
       themes.value = manager.getAll();
     });
 
+    const configureAI = (options: AIOptions) => {
+      manager.configureAI(options);
+      aiError.value = null;
+      aiConfigVersion.value++;
+    };
+
     // Provide injection
     const injection: ThemedInjection = {
       manager,
@@ -108,11 +115,14 @@ export const themedPlugin = {
         return aiError.value;
       },
       get isAIConfigured() {
+        aiConfigVersion.value; // Track for reactivity
         return manager.getAIOrchestrator() !== null;
       },
       get modelInfo() {
+        aiConfigVersion.value; // Track for reactivity
         return manager.getAIConfig();
       },
+      configureAI,
     };
 
     app.provide(THEMED_INJECTION_KEY, injection);

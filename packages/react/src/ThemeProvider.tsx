@@ -67,6 +67,7 @@ export function ThemeProvider({
   const [initialized, setInitialized] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiError, setAiError] = useState<Error | null>(null);
+  const [aiConfigVersion, setAiConfigVersion] = useState(0);
 
   // Initialize manager
   useEffect(() => {
@@ -148,6 +149,15 @@ export function ThemeProvider({
     [manager]
   );
 
+  const configureAI = useCallback(
+    (options: AIOptions) => {
+      manager.configureAI(options);
+      setAiError(null);
+      setAiConfigVersion((v) => v + 1);
+    },
+    [manager]
+  );
+
   // Context values
   const themeContextValue = useMemo<ThemeContextValue>(
     () => ({
@@ -163,12 +173,13 @@ export function ThemeProvider({
     () => ({
       generate,
       adjust,
+      configureAI,
       isGenerating,
       error: aiError,
       isConfigured: manager.getAIOrchestrator() !== null,
       modelInfo: manager.getAIConfig(),
     }),
-    [generate, adjust, isGenerating, aiError, manager]
+    [generate, adjust, configureAI, isGenerating, aiError, manager, aiConfigVersion]
   );
 
   return (

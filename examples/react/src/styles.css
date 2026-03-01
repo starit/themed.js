@@ -61,6 +61,127 @@ p {
   color: var(--themed-color-text-inverse);
 }
 
+.ai-config-section {
+  background-color: var(--themed-color-surface);
+  border: 1px solid var(--themed-color-border);
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.ai-config-toggle {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border: none;
+  background-color: transparent;
+  color: var(--themed-color-text-primary);
+  font-family: inherit;
+  font-size: var(--themed-font-size-sm);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.ai-config-toggle:hover {
+  background-color: var(--themed-color-background);
+}
+
+.ai-config-form {
+  padding: 0 1rem 1rem;
+  border-top: 1px solid var(--themed-color-border);
+}
+
+.ai-config-hint {
+  font-size: var(--themed-font-size-sm);
+  color: var(--themed-color-text-secondary);
+  margin: 0.75rem 0 0.5rem;
+}
+
+.ai-config-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.ai-config-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--themed-color-border);
+  border-radius: 0.5rem;
+  background-color: var(--themed-color-background);
+  color: var(--themed-color-text-primary);
+  font-family: inherit;
+  font-size: var(--themed-font-size-sm);
+  min-width: 120px;
+}
+
+.ai-config-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--themed-color-border);
+  border-radius: 0.5rem;
+  background-color: var(--themed-color-background);
+  color: var(--themed-color-text-primary);
+  font-family: inherit;
+  font-size: var(--themed-font-size-sm);
+}
+
+.ai-config-input:focus {
+  outline: none;
+  border-color: var(--themed-color-primary);
+}
+
+.ai-config-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ai-config-remember {
+  font-size: var(--themed-font-size-xs);
+  color: var(--themed-color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ai-config-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ai-config-btn {
+  padding: 0.375rem 0.75rem;
+  font-size: var(--themed-font-size-sm);
+  border: 1px solid var(--themed-color-primary);
+  border-radius: 0.375rem;
+  background-color: var(--themed-color-primary);
+  color: var(--themed-color-text-inverse);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.ai-config-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.ai-config-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-config-btn.secondary {
+  background-color: transparent;
+  color: var(--themed-color-text-primary);
+  border-color: var(--themed-color-border);
+}
+
+.ai-config-btn.secondary:hover {
+  border-color: var(--themed-color-primary);
+}
+
 .ai-section {
   background-color: var(--themed-color-surface);
   border: 1px solid var(--themed-color-border);

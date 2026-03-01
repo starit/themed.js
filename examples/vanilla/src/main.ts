@@ -1,20 +1,18 @@
-import { createThemed, type Theme } from '@themed.js/core';
+import { createThemed } from '@themed.js/core';
 
-// Vite loads env vars prefixed with VITE_ from .env; access via import.meta.env
-const apiKey = import.meta.env.VITE_OPENAI_API_KEY as string | undefined;
+const AI_CONFIG_STORAGE_KEY = 'themed-demo-ai-config';
 
-const themed = createThemed({
-  defaultTheme: 'light',
-  // Enable AI generation when VITE_OPENAI_API_KEY is set in .env
-  ...(apiKey && {
-    ai: {
-      provider: 'openai' as const,
-      apiKey,
-      model: 'gpt-4o-mini',
-      timeout: 60000,
-    },
-  }),
-});
+const PROVIDERS = [
+  { value: 'openai', label: 'OpenAI', model: 'gpt-4o-mini' },
+  { value: 'claude', label: 'Claude', model: 'claude-sonnet-4-6' },
+  { value: 'gemini', label: 'Gemini', model: 'gemini-2.5-flash' },
+  { value: 'groq', label: 'Groq', model: 'llama-3.3-70b-versatile' },
+  { value: 'moonshot', label: 'Moonshot', model: 'kimi-k2-turbo-preview' },
+  { value: 'deepseek', label: 'DeepSeek', model: 'deepseek-chat' },
+] as const;
+
+// No API key in build - users enter their own key in the demo UI (safe for GitHub Pages)
+const themed = createThemed({ defaultTheme: 'light' });
 
 // Initialize and render
 async function init() {
@@ -29,7 +27,11 @@ async function init() {
     renderColorPreview();
   });
 
-  // Setup AI generation
+  // Load saved AI config
+  loadAIConfig();
+
+  // Setup AI config panel and generation
+  setupAIConfig();
   setupAIGeneration();
 }
 
@@ -155,34 +157,129 @@ function formatProviderName(provider: string): string {
   return names[provider] ?? provider;
 }
 
-// Setup AI generation
-function setupAIGeneration() {
-  const input = document.getElementById('ai-prompt') as HTMLInputElement;
+// Load saved AI config from localStorage
+function loadAIConfig() {
+  try {
+    const saved = localStorage.getItem(AI_CONFIG_STORAGE_KEY);
+    if (saved) {
+      const { apiKey, provider, model } = JSON.parse(saved);
+      if (apiKey) {
+        const prov = PROVIDERS.find((p) => p.value === (provider || 'openai'));
+        themed.configureAI({
+          provider: provider || 'openai',
+          apiKey,
+          model: model || prov?.model,
+          timeout: 60000,
+        });
+      }
+    }
+  } catch {
+    // Ignore
+  }
+}
+
+// Setup API key config panel
+function setupAIConfig() {
+  const toggle = document.getElementById('ai-config-toggle')!;
+  const form = document.getElementById('ai-config-form')!;
+  const providerSelect = document.getElementById('ai-config-provider') as HTMLSelectElement;
+  const apiKeyInput = document.getElementById('ai-config-key') as HTMLInputElement;
+  const rememberCheck = document.getElementById('ai-config-remember') as HTMLInputElement;
+  const saveBtn = document.getElementById('ai-config-save')!;
+  const clearBtn = document.getElementById('ai-config-clear')!;
+
+  let expanded = !themed.getAIOrchestrator();
+  form.style.display = expanded ? 'block' : 'none';
+
+  // Load saved values into form (not the key for security, just provider)
+  try {
+    const saved = localStorage.getItem(AI_CONFIG_STORAGE_KEY);
+    if (saved) {
+      const { provider } = JSON.parse(saved);
+      if (provider) providerSelect.value = provider;
+      rememberCheck.checked = true;
+    }
+  } catch {
+    // Ignore
+  }
+
+  toggle.addEventListener('click', () => {
+    expanded = !expanded;
+    form.style.display = expanded ? 'block' : 'none';
+    toggle.textContent = `${expanded ? '▼' : '▶'} API Key ${
+      themed.getAIOrchestrator() ? `(${themed.getAIConfig()?.provider ?? 'configured'})` : '(not set)'
+    }`;
+  });
+
+  saveBtn.addEventListener('click', () => {
+    const apiKey = apiKeyInput.value.trim();
+    if (!apiKey) return;
+    const provider = providerSelect.value as (typeof PROVIDERS)[number]['value'];
+    const prov = PROVIDERS.find((p) => p.value === provider);
+    themed.configureAI({
+      provider,
+      apiKey,
+      model: prov?.model,
+      timeout: 60000,
+    });
+    if (rememberCheck.checked) {
+      localStorage.setItem(
+        AI_CONFIG_STORAGE_KEY,
+        JSON.stringify({ apiKey, provider, model: prov?.model })
+      );
+    } else {
+      localStorage.removeItem(AI_CONFIG_STORAGE_KEY);
+    }
+    expanded = false;
+    form.style.display = 'none';
+    apiKeyInput.value = '';
+    toggle.textContent = `▶ API Key (${provider})`;
+    updateAIGenerationUI();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    localStorage.removeItem(AI_CONFIG_STORAGE_KEY);
+    window.location.reload();
+  });
+
+  // Update toggle text
+  const aiConfig = themed.getAIConfig();
+  toggle.textContent = `${expanded ? '▼' : '▶'} API Key ${
+    aiConfig ? `(${aiConfig.provider})` : '(not set)'
+  }`;
+}
+
+function updateAIGenerationUI() {
+  const modelBadge = document.getElementById('model-badge')!;
   const button = document.getElementById('ai-generate') as HTMLButtonElement;
   const status = document.getElementById('status')!;
-  const modelBadge = document.getElementById('model-badge')!;
 
-  // Display model info
   const aiConfig = themed.getAIConfig();
+  const isConfigured = themed.getAIOrchestrator() !== null;
+
   if (aiConfig) {
-    const providerName = formatProviderName(aiConfig.provider);
     modelBadge.innerHTML = aiConfig.model
-      ? `${providerName} <span class="model-name">· ${aiConfig.model}</span>`
-      : providerName;
+      ? `${formatProviderName(aiConfig.provider)} <span class="model-name">· ${aiConfig.model}</span>`
+      : formatProviderName(aiConfig.provider);
     modelBadge.style.display = '';
   } else {
     modelBadge.style.display = 'none';
   }
 
-  // Check if AI is configured
-  const isAIConfigured = themed.getAIOrchestrator() !== null;
-
-  if (!isAIConfigured) {
+  if (!isConfigured) {
     button.disabled = true;
-    status.textContent = 'AI not configured. Add your API key to enable.';
+    status.textContent = 'Enter your API key above to enable AI.';
     status.className = '';
-    return;
   }
+}
+
+// Setup AI generation
+function setupAIGeneration() {
+  const input = document.getElementById('ai-prompt') as HTMLInputElement;
+  const button = document.getElementById('ai-generate') as HTMLButtonElement;
+  const status = document.getElementById('status')!;
+
+  updateAIGenerationUI();
 
   button.addEventListener('click', async () => {
     const prompt = input.value.trim();
@@ -207,7 +304,7 @@ function setupAIGeneration() {
       status.textContent = `Error: ${(error as Error).message}`;
       status.className = 'error';
     } finally {
-      button.disabled = false;
+      button.disabled = !themed.getAIOrchestrator();
       button.textContent = 'Generate';
     }
   });
