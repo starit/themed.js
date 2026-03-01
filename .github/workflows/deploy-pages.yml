@@ -36,8 +36,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build core
-        run: pnpm --filter @themed.js/core run build
+      - name: Build packages
+        run: pnpm --filter "./packages/*" run build
 
       - name: Build React example
         run: pnpm --filter themed-react-example run build
