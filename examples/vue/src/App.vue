@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useTheme, useAITheme } from '@themed.js/vue';
+import { createTheme } from '@themed.js/core';
 
 const AI_CONFIG_STORAGE_KEY = 'themed-demo-ai-config';
 
@@ -13,7 +14,7 @@ const PROVIDERS = [
   { value: 'deepseek', label: 'DeepSeek', model: 'deepseek-chat' },
 ] as const;
 
-const { theme, themes, apply } = useTheme();
+const { theme, themes, apply, register } = useTheme();
 const { generate, isGenerating, error, isConfigured, modelInfo, configureAI } = useAITheme();
 
 const apiKey = ref('');
@@ -125,23 +126,93 @@ const toHexDisplay = (value: string): string => {
   return value;
 };
 
-const downloadThemeColors = () => {
-  if (!theme.value) return;
-  const data = {
+const getThemeExportData = () => {
+  if (!theme.value) return null;
+  return {
     theme: { name: theme.value.name, id: theme.value.id },
-    colors: theme.value.tokens.colors,
+    tokens: theme.value.tokens,
     exportedAt: new Date().toISOString(),
   };
+};
+
+const downloadThemeTokens = () => {
+  const data = getThemeExportData();
+  if (!data) return;
   const blob = new Blob([JSON.stringify(data, null, 2)], {
     type: 'application/json',
   });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${theme.value.name.replace(/\s+/g, '-')}-colors.json`;
+  a.download = `${theme.value.name.replace(/\s+/g, '-')}-tokens.json`;
   a.click();
   URL.revokeObjectURL(url);
 };
+
+/** Parse JSON string into theme input. Supports export format { theme, tokens } or { id, name, tokens }. */
+function parseThemeFromJson(json: string): { id: string; name: string; tokens: object } {
+  const data = JSON.parse(json) as Record<string, unknown>;
+  if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
+  const tokens = data.tokens as Record<string, unknown> | undefined;
+  if (!tokens || typeof tokens !== 'object' || !tokens.colors || !tokens.typography) {
+    throw new Error('JSON must contain theme.tokens with colors and typography');
+  }
+  const themeObj = data.theme as { id?: string; name?: string } | undefined;
+  if (themeObj && typeof themeObj.id === 'string' && typeof themeObj.name === 'string') {
+    return { id: themeObj.id, name: themeObj.name, tokens };
+  }
+  if (typeof data.id === 'string' && typeof data.name === 'string') {
+    return { id: data.id, name: data.name, tokens };
+  }
+  throw new Error('JSON must contain theme.id/theme.name or top-level id/name');
+}
+
+/** Parse the first font name from a CSS font-family value */
+function getFirstFontName(stack: string): string {
+  const first = stack.split(',')[0].trim();
+  return first.replace(/^['"]|['"]$/g, '') || first;
+}
+
+const showViewJson = ref(false);
+const showImportJson = ref(false);
+const importText = ref('');
+const importError = ref('');
+
+const handleImport = () => {
+  importError.value = '';
+  try {
+    const input = parseThemeFromJson(importText.value);
+    const next = createTheme(input);
+    register(next);
+    apply(next.id);
+    showImportJson.value = false;
+    importText.value = '';
+  } catch (e) {
+    importError.value = e instanceof Error ? e.message : 'Invalid theme JSON';
+  }
+};
+
+const handleImportFile = (e: Event) => {
+  const target = e.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    importText.value = String(reader.result);
+    importError.value = '';
+  };
+  reader.readAsText(file);
+  target.value = '';
+};
+
+const spacingEntries = () =>
+  theme.value?.tokens.spacing ? Object.entries(theme.value.tokens.spacing) : [];
+const radiusEntries = () =>
+  theme.value?.tokens.radius ? Object.entries(theme.value.tokens.radius) : [];
+const shadowEntries = () =>
+  theme.value?.tokens.shadow ? Object.entries(theme.value.tokens.shadow) : [];
+const transitionEntries = () =>
+  theme.value?.tokens.transition ? Object.entries(theme.value.tokens.transition) : [];
 </script>
 
 <template>
@@ -262,30 +333,173 @@ const downloadThemeColors = () => {
       </div>
     </div>
 
-    <!-- Color Preview -->
-    <div class="card">
+    <!-- Current Theme (all tokens) -->
+    <div class="card theme-current-card">
       <div class="card-header">
         <h3>Current Theme: {{ theme?.name ?? 'None' }}</h3>
-        <button
-          v-if="theme"
-          type="button"
-          class="download-btn"
-          @click="downloadThemeColors"
-        >
-          Download JSON
-        </button>
-      </div>
-      <div class="color-preview">
-        <div
-          v-for="[name, value] in displayColors()"
-          :key="name"
-          class="color-swatch"
-        >
-          <div class="swatch" :style="{ backgroundColor: value }" />
-          <span class="label">{{ formatColorName(name) }}</span>
-          <span class="hex">{{ toHexDisplay(value) }}</span>
+        <div v-if="theme" class="card-actions">
+          <button type="button" class="download-btn" @click="showViewJson = true">
+            View JSON
+          </button>
+          <button type="button" class="download-btn" @click="downloadThemeTokens">
+            Download JSON
+          </button>
+          <button
+            type="button"
+            class="download-btn"
+            @click="showImportJson = true; importText = ''; importError = ''"
+          >
+            Import JSON
+          </button>
         </div>
       </div>
+
+      <template v-if="theme">
+        <div v-if="showViewJson" class="json-modal-overlay" @click="showViewJson = false">
+          <div class="json-modal" @click.stop>
+            <div class="json-modal-header">
+              <h4>Theme JSON</h4>
+              <button type="button" class="json-modal-close" @click="showViewJson = false">Close</button>
+            </div>
+            <pre class="json-modal-body">{{ getThemeExportData() ? JSON.stringify(getThemeExportData(), null, 2) : '' }}</pre>
+          </div>
+        </div>
+
+        <div v-if="showImportJson" class="json-modal-overlay" @click="showImportJson = false">
+          <div class="json-modal json-modal-import" @click.stop>
+            <div class="json-modal-header">
+              <h4>Import theme from JSON</h4>
+              <button type="button" class="json-modal-close" @click="showImportJson = false">Close</button>
+            </div>
+            <div class="json-modal-body">
+              <label class="json-import-file-label">
+                <input type="file" accept=".json,application/json" class="json-import-file" @change="handleImportFile" />
+                Choose file
+              </label>
+              <textarea
+                v-model="importText"
+                class="json-import-textarea"
+                placeholder='Paste JSON or use "Choose file". Format: { "theme": { "id", "name" }, "tokens": { ... } }'
+                rows="10"
+                @input="importError = ''"
+              />
+              <p v-if="importError" class="json-import-error">{{ importError }}</p>
+              <button type="button" class="json-import-submit" :disabled="!importText.trim()" @click="handleImport">
+                Import and apply
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="theme-tokens-block">
+          <h4 class="theme-tokens-section-title">Colors</h4>
+          <div class="color-preview">
+            <div
+              v-for="[name, value] in displayColors()"
+              :key="name"
+              class="color-swatch"
+            >
+              <div class="swatch" :style="{ backgroundColor: value }" />
+              <span class="label">{{ formatColorName(name) }}</span>
+              <span class="hex">{{ toHexDisplay(value) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-if="theme.tokens.typography?.fontFamily"
+          class="theme-tokens-section"
+        >
+          <h4 class="theme-tokens-section-title">Typography</h4>
+          <div class="theme-typography-preview">
+            <div
+              class="theme-font-sample"
+              :style="{ fontFamily: theme.tokens.typography.fontFamily.sans }"
+            >
+              <span class="theme-font-label">Sans</span>
+              <span class="theme-font-first">Primary: {{ getFirstFontName(theme.tokens.typography.fontFamily.sans) }}</span>
+              <span class="theme-font-value">The quick brown fox</span>
+            </div>
+            <div
+              class="theme-font-sample"
+              :style="{ fontFamily: theme.tokens.typography.fontFamily.serif }"
+            >
+              <span class="theme-font-label">Serif</span>
+              <span class="theme-font-first">Primary: {{ getFirstFontName(theme.tokens.typography.fontFamily.serif) }}</span>
+              <span class="theme-font-value">The quick brown fox</span>
+            </div>
+            <div
+              class="theme-font-sample"
+              :style="{ fontFamily: theme.tokens.typography.fontFamily.mono }"
+            >
+              <span class="theme-font-label">Mono</span>
+              <span class="theme-font-first">Primary: {{ getFirstFontName(theme.tokens.typography.fontFamily.mono) }}</span>
+              <span class="theme-font-value">The quick brown fox</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="theme-tokens-row">
+          <div v-if="spacingEntries().length" class="theme-tokens-section">
+            <h4 class="theme-tokens-section-title">Spacing</h4>
+            <div class="theme-token-pills">
+              <span
+                v-for="[key, value] in spacingEntries()"
+                :key="key"
+                class="theme-token-pill"
+                :title="value"
+              >
+                <span class="theme-token-pill-key">{{ key }}</span>
+                <span class="theme-token-pill-value">{{ value }}</span>
+              </span>
+            </div>
+          </div>
+          <div v-if="radiusEntries().length" class="theme-tokens-section">
+            <h4 class="theme-tokens-section-title">Radius</h4>
+            <div class="theme-token-pills">
+              <span
+                v-for="[key, value] in radiusEntries()"
+                :key="key"
+                class="theme-token-pill"
+                :title="value"
+              >
+                <span class="theme-token-pill-key">{{ key }}</span>
+                <span class="theme-token-pill-value">{{ value }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="theme-tokens-row">
+          <div v-if="transitionEntries().length" class="theme-tokens-section">
+            <h4 class="theme-tokens-section-title">Transition</h4>
+            <div class="theme-token-pills">
+              <span
+                v-for="[key, value] in transitionEntries()"
+                :key="key"
+                class="theme-token-pill"
+                :title="value"
+              >
+                <span class="theme-token-pill-key">{{ key }}</span>
+                <span class="theme-token-pill-value">{{ value }}</span>
+              </span>
+            </div>
+          </div>
+          <div v-if="shadowEntries().length" class="theme-tokens-section">
+            <h4 class="theme-tokens-section-title">Shadow</h4>
+            <div class="theme-shadow-preview">
+              <div
+                v-for="[key, value] in shadowEntries()"
+                :key="key"
+                class="theme-shadow-swatch"
+                :style="{ boxShadow: value }"
+                :title="value"
+              >
+                <span class="theme-shadow-label">{{ key }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
     </div>
 
     <!-- Style Demo -->

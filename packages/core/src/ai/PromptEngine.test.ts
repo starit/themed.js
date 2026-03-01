@@ -60,5 +60,28 @@ describe('PromptEngine', () => {
       expect(tokens.colors.primary).toBe(lightTheme.tokens.colors.primary);
       expect(tokens.typography.fontSize.base).toBeDefined();
     });
+
+    it('uses default radius and shadow when omitted', () => {
+      const colorsOnly = JSON.stringify({ colors: lightTheme.tokens.colors });
+      const tokens = engine.parseResponse(colorsOnly);
+      expect(tokens.radius?.md).toBeDefined();
+      expect(tokens.shadow?.md).toBeDefined();
+    });
+
+    it('uses AI radius and shadow when provided and valid', () => {
+      const withRadiusAndShadow = JSON.stringify({
+        colors: lightTheme.tokens.colors,
+        radius: { none: '0', sm: '0.5rem', md: '1rem', lg: '1.5rem', full: '9999px' },
+        shadow: {
+          none: 'none',
+          sm: '0 2px 4px rgb(0 0 0 / 0.1)',
+          md: '0 8px 16px rgb(0 0 0 / 0.15)',
+          lg: '0 16px 32px rgb(0 0 0 / 0.2)',
+        },
+      });
+      const tokens = engine.parseResponse(withRadiusAndShadow);
+      expect(tokens.radius?.md).toBe('1rem');
+      expect(tokens.shadow?.md).toBe('0 8px 16px rgb(0 0 0 / 0.15)');
+    });
   });
 });

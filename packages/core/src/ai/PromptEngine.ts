@@ -1,6 +1,12 @@
 import type { Message } from './providers/base';
 import type { Theme } from '../types/theme';
-import type { ThemeTokens, ColorTokens, TypographyTokens } from '../types/tokens';
+import type {
+  ThemeTokens,
+  ColorTokens,
+  TypographyTokens,
+  RadiusTokens,
+  ShadowTokens,
+} from '../types/tokens';
 import {
   defaultTypographyTokens,
   defaultSpacingTokens,
@@ -63,8 +69,25 @@ The JSON must follow this exact structure:
       "normal": 1.5,
       "relaxed": 1.75
     }
+  },
+  "radius": {
+    "none": "0",
+    "sm": "0.25rem",
+    "md": "0.5rem",
+    "lg": "0.75rem",
+    "full": "9999px"
+  },
+  "shadow": {
+    "none": "none",
+    "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+    "md": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+    "lg": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)"
   }
 }
+
+You MAY omit "radius" and "shadow"; if omitted, defaults will be used. When included:
+- radius: use CSS length (e.g. "0.25rem", "0.5rem") or "9999px" for full; affects rounded vs sharp feel.
+- shadow: use "none" or a valid CSS box-shadow string; affects flat vs elevated feel.
 
 Guidelines for color generation:
 1. Ensure sufficient contrast between text and background colors (WCAG AA compliance)
@@ -118,7 +141,7 @@ ${JSON.stringify(theme.tokens, null, 2)}
 
 Please modify this theme according to the following instruction: "${instruction}"
 
-Remember: Respond with ONLY the complete JSON object (including both colors and typography), no other text or formatting.`,
+Remember: Respond with ONLY the complete JSON object (including colors, typography, and optionally radius and shadow), no other text or formatting.`,
       },
     ];
   }
@@ -178,13 +201,66 @@ Remember: Respond with ONLY the complete JSON object (including both colors and 
       typography = { ...defaultTypographyTokens };
     }
 
-    // Spacing, radius, shadow, transition: use defaults (AI only generates colors/typography for now)
+    // Spacing and transition: always use defaults (structural/consistent)
     const spacing = defaultSpacingTokens;
-    const radius = defaultRadiusTokens;
-    const shadow = defaultShadowTokens;
     const transition = defaultTransitionTokens;
 
+    // Radius and shadow: use AI output when valid, else defaults (option B)
+    const radius =
+      obj.radius && typeof obj.radius === 'object'
+        ? this.normalizeRadius(obj.radius as Record<string, unknown>)
+        : defaultRadiusTokens;
+    const shadow =
+      obj.shadow && typeof obj.shadow === 'object'
+        ? this.normalizeShadow(obj.shadow as Record<string, unknown>)
+        : defaultShadowTokens;
+
     return { colors, typography, spacing, radius, shadow, transition };
+  }
+
+  /**
+   * Normalize radius tokens from AI; invalid keys fall back to default
+   */
+  private normalizeRadius(radius: Record<string, unknown>): RadiusTokens {
+    const keys: (keyof RadiusTokens)[] = ['none', 'sm', 'md', 'lg', 'full'];
+    const result: Partial<RadiusTokens> = {};
+    for (const key of keys) {
+      const value = radius[key];
+      result[key] =
+        typeof value === 'string' && this.isValidRadiusValue(value)
+          ? value
+          : defaultRadiusTokens[key];
+    }
+    return result as RadiusTokens;
+  }
+
+  /**
+   * Normalize shadow tokens from AI; invalid keys fall back to default
+   */
+  private normalizeShadow(shadow: Record<string, unknown>): ShadowTokens {
+    const keys: (keyof ShadowTokens)[] = ['none', 'sm', 'md', 'lg'];
+    const result: Partial<ShadowTokens> = {};
+    for (const key of keys) {
+      const value = shadow[key];
+      result[key] =
+        typeof value === 'string' && this.isValidShadowValue(value)
+          ? value
+          : defaultShadowTokens[key];
+    }
+    return result as ShadowTokens;
+  }
+
+  private isValidRadiusValue(s: string): boolean {
+    if (s.length === 0 || s.length > 30) return false;
+    if (s === '0' || s === 'none') return true;
+    if (s === '9999px') return true;
+    return /^\d+(\.\d+)?(rem|px)$/.test(s.trim());
+  }
+
+  private isValidShadowValue(s: string): boolean {
+    if (s.length === 0 || s.length > 500) return false;
+    if (s.trim().toLowerCase() === 'none') return true;
+    return true;
   }
 
   /**

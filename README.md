@@ -231,7 +231,7 @@ themed.getAll();             // Get all themes
 // AI generation
 const theme = await themed.generate('Description');
 
-// Events
+// Events (see docs/EVENTS.md for full event contract and payloads)
 themed.on('theme:changed', ({ theme }) => {});
 ```
 

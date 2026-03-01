@@ -10,18 +10,21 @@ import type {
 import { createTheme } from './types/theme';
 import { EventBus } from './EventBus';
 import { CSSInjector } from './CSSInjector';
+import type { IAIThemeGenerator } from './ai/types';
+import { createAIOrchestrator } from './ai/createAIOrchestrator';
 import { AIOrchestrator } from './ai/AIOrchestrator';
 import { StorageManager } from './storage/StorageManager';
 
 /**
- * Main theme manager class
+ * Main theme manager class.
+ * Depends on IAIThemeGenerator (interface) and createAIOrchestrator (factory); provider wiring lives in ai/createAIProvider.
  */
 export class ThemeManager {
   private themes: Map<string, Theme> = new Map();
   private activeTheme: Theme | null = null;
   private eventBus: EventBus;
   private cssInjector: CSSInjector;
-  private aiOrchestrator: AIOrchestrator | null = null;
+  private aiOrchestrator: IAIThemeGenerator | null = null;
   private storageManager: StorageManager | null = null;
   private options: ThemeManagerOptions;
   /** Current AI options (updated by configureAI); used so getAIConfig() reflects runtime config */
@@ -33,10 +36,9 @@ export class ThemeManager {
     this.eventBus = new EventBus({ debug: options.debug });
     this.cssInjector = new CSSInjector(options.css);
 
-    // Initialize AI orchestrator if configured
     if (options.ai) {
       this.currentAIOptions = options.ai;
-      this.aiOrchestrator = new AIOrchestrator(options.ai);
+      this.aiOrchestrator = createAIOrchestrator(options.ai);
     }
 
     // Initialize storage manager if configured
@@ -250,10 +252,10 @@ export class ThemeManager {
   }
 
   /**
-   * Get the AI orchestrator instance
+   * Get the AI orchestrator instance (concrete type for consumers that need it).
    */
   getAIOrchestrator(): AIOrchestrator | null {
-    return this.aiOrchestrator;
+    return this.aiOrchestrator as AIOrchestrator | null;
   }
 
   /**
@@ -280,7 +282,7 @@ export class ThemeManager {
    */
   configureAI(options: AIOptions): void {
     this.currentAIOptions = options;
-    this.aiOrchestrator = new AIOrchestrator(options);
+    this.aiOrchestrator = createAIOrchestrator(options);
   }
 
   /**

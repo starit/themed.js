@@ -14,6 +14,9 @@ export { TokenResolver } from './TokenResolver';
 
 // AI
 export { AIOrchestrator } from './ai/AIOrchestrator';
+export { createAIProvider } from './ai/createAIProvider';
+export { createAIOrchestrator } from './ai/createAIOrchestrator';
+export type { IAIThemeGenerator } from './ai/types';
 export { PromptEngine } from './ai/PromptEngine';
 export type { AIProvider, AIProviderConfig } from './ai/providers/base';
 export { OpenAIProvider } from './ai/providers/openai';

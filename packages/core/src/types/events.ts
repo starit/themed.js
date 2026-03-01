@@ -1,7 +1,9 @@
 import type { Theme } from './theme';
 
 /**
- * Theme event types
+ * Theme event types. Namespaced (theme:* | storage:*) to avoid collision with DOM/framework events.
+ *
+ * @see docs/EVENTS.md Full event contract: payload shapes, when each event is emitted, and recommended usage.
  */
 export type ThemeEventType =
   | 'theme:changed'

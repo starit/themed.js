@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTheme, useAITheme } from '@themed.js/react';
+import { createTheme, type ThemeInput } from '@themed.js/core';
 
 const AI_CONFIG_STORAGE_KEY = 'themed-demo-ai-config';
 
@@ -260,55 +261,261 @@ function toHexDisplay(value: string): string {
   return value;
 }
 
-function downloadThemeColors(theme: { name: string; id: string }, colors: Record<string, string>) {
-  const data = {
+function getThemeExportData(theme: { name: string; id: string; tokens: object }) {
+  return {
     theme: { name: theme.name, id: theme.id },
-    colors,
+    tokens: theme.tokens,
     exportedAt: new Date().toISOString(),
   };
+}
+
+function downloadThemeTokens(theme: { name: string; id: string; tokens: object }) {
+  const data = getThemeExportData(theme);
   const blob = new Blob([JSON.stringify(data, null, 2)], {
     type: 'application/json',
   });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${theme.name.replace(/\s+/g, '-')}-colors.json`;
+  a.download = `${theme.name.replace(/\s+/g, '-')}-tokens.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
+/** Parse JSON string into theme input. Supports export format { theme, tokens } or { id, name, tokens }. */
+function parseThemeFromJson(json: string): { id: string; name: string; tokens: object } {
+  const data = JSON.parse(json) as Record<string, unknown>;
+  if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
+  const tokens = data.tokens as Record<string, unknown> | undefined;
+  if (!tokens || typeof tokens !== 'object' || !tokens.colors || !tokens.typography) {
+    throw new Error('JSON must contain theme.tokens with colors and typography');
+  }
+  const theme = data.theme as { id?: string; name?: string } | undefined;
+  if (theme && typeof theme.id === 'string' && typeof theme.name === 'string') {
+    return { id: theme.id, name: theme.name, tokens };
+  }
+  if (typeof data.id === 'string' && typeof data.name === 'string') {
+    return { id: data.id, name: data.name, tokens };
+  }
+  throw new Error('JSON must contain theme.id/theme.name or top-level id/name');
+}
+
+function TokenPills({
+  title,
+  entries,
+}: {
+  title: string;
+  entries: [string, string | number][];
+}) {
+  if (entries.length === 0) return null;
+  return (
+    <div className="theme-tokens-section">
+      <h4 className="theme-tokens-section-title">{title}</h4>
+      <div className="theme-token-pills">
+        {entries.map(([key, value]) => (
+          <span key={key} className="theme-token-pill" title={String(value)}>
+            <span className="theme-token-pill-key">{key}</span>
+            <span className="theme-token-pill-value">{String(value)}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ColorPreview() {
-  const { theme } = useTheme();
+  const { theme, register, apply } = useTheme();
+  const [showViewJson, setShowViewJson] = useState(false);
+  const [showImportJson, setShowImportJson] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [importError, setImportError] = useState('');
 
   if (!theme) {
     return <div className="card">No theme selected</div>;
   }
 
-  const colors = Object.entries(theme.tokens.colors);
+  const { tokens } = theme;
+  const colors = Object.entries(tokens.colors);
+  const fontFamily = tokens.typography.fontFamily;
+  const spacingEntries = tokens.spacing
+    ? (Object.entries(tokens.spacing) as [string, string][])
+    : [];
+  const radiusEntries = tokens.radius
+    ? (Object.entries(tokens.radius) as [string, string][])
+    : [];
+  const shadowEntries = tokens.shadow
+    ? (Object.entries(tokens.shadow) as [string, string][])
+    : [];
+  const transitionEntries = tokens.transition
+    ? (Object.entries(tokens.transition) as [string, string][])
+    : [];
+
+  const handleImport = () => {
+    setImportError('');
+    try {
+      const input = parseThemeFromJson(importText) as ThemeInput;
+      const next = createTheme(input);
+      register(next);
+      apply(next.id);
+      setShowImportJson(false);
+      setImportText('');
+    } catch (e) {
+      setImportError(e instanceof Error ? e.message : 'Invalid theme JSON');
+    }
+  };
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImportText(String(reader.result));
+      setImportError('');
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
 
   return (
-    <div className="card">
+    <div className="card theme-current-card">
       <div className="card-header">
         <h3>Current Theme: {theme.name}</h3>
-        <button
-          type="button"
-          className="download-btn"
-          onClick={() => downloadThemeColors(theme, theme.tokens.colors)}
-        >
-          Download JSON
-        </button>
+        <div className="card-actions">
+          <button
+            type="button"
+            className="download-btn"
+            onClick={() => setShowViewJson(true)}
+          >
+            View JSON
+          </button>
+          <button
+            type="button"
+            className="download-btn"
+            onClick={() => downloadThemeTokens(theme)}
+          >
+            Download JSON
+          </button>
+          <button
+            type="button"
+            className="download-btn"
+            onClick={() => {
+              setShowImportJson(true);
+              setImportText('');
+              setImportError('');
+            }}
+          >
+            Import JSON
+          </button>
+        </div>
       </div>
-      <div className="color-preview">
-        {colors.map(([name, value]) => (
-          <div key={name} className="color-swatch">
-            <div className="swatch" style={{ backgroundColor: value }} />
-            <span className="label">{formatColorName(name)}</span>
-            <span className="hex">{toHexDisplay(value)}</span>
+
+      {showViewJson && (
+        <div className="json-modal-overlay" onClick={() => setShowViewJson(false)}>
+          <div className="json-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="json-modal-header">
+              <h4>Theme JSON</h4>
+              <button type="button" className="json-modal-close" onClick={() => setShowViewJson(false)}>Close</button>
+            </div>
+            <pre className="json-modal-body">{JSON.stringify(getThemeExportData(theme), null, 2)}</pre>
           </div>
-        ))}
+        </div>
+      )}
+
+      {showImportJson && (
+        <div className="json-modal-overlay" onClick={() => setShowImportJson(false)}>
+          <div className="json-modal json-modal-import" onClick={(e) => e.stopPropagation()}>
+            <div className="json-modal-header">
+              <h4>Import theme from JSON</h4>
+              <button type="button" className="json-modal-close" onClick={() => setShowImportJson(false)}>Close</button>
+            </div>
+            <div className="json-modal-body">
+              <label className="json-import-file-label">
+                <input type="file" accept=".json,application/json" onChange={handleImportFile} className="json-import-file" />
+                Choose file
+              </label>
+              <textarea
+                className="json-import-textarea"
+                placeholder='Paste JSON or use "Choose file". Format: { "theme": { "id", "name" }, "tokens": { ... } }'
+                value={importText}
+                onChange={(e) => { setImportText(e.target.value); setImportError(''); }}
+                rows={10}
+              />
+              {importError && <p className="json-import-error">{importError}</p>}
+              <button type="button" className="json-import-submit" onClick={handleImport} disabled={!importText.trim()}>
+                Import and apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="theme-tokens-block">
+        <h4 className="theme-tokens-section-title">Colors</h4>
+        <div className="color-preview">
+          {colors.map(([name, value]) => (
+            <div key={name} className="color-swatch">
+              <div className="swatch" style={{ backgroundColor: value }} />
+              <span className="label">{formatColorName(name)}</span>
+              <span className="hex">{toHexDisplay(value)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="theme-tokens-section">
+        <h4 className="theme-tokens-section-title">Typography</h4>
+        <div className="theme-typography-preview">
+          <div className="theme-font-sample" style={{ fontFamily: fontFamily.sans }}>
+            <span className="theme-font-label">Sans</span>
+            <span className="theme-font-first">Primary: {getFirstFontName(fontFamily.sans)}</span>
+            <span className="theme-font-value">The quick brown fox</span>
+          </div>
+          <div className="theme-font-sample" style={{ fontFamily: fontFamily.serif }}>
+            <span className="theme-font-label">Serif</span>
+            <span className="theme-font-first">Primary: {getFirstFontName(fontFamily.serif)}</span>
+            <span className="theme-font-value">The quick brown fox</span>
+          </div>
+          <div className="theme-font-sample" style={{ fontFamily: fontFamily.mono }}>
+            <span className="theme-font-label">Mono</span>
+            <span className="theme-font-first">Primary: {getFirstFontName(fontFamily.mono)}</span>
+            <span className="theme-font-value">The quick brown fox</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="theme-tokens-row">
+        <TokenPills title="Spacing" entries={spacingEntries} />
+        <TokenPills title="Radius" entries={radiusEntries} />
+      </div>
+
+      <div className="theme-tokens-row">
+        <TokenPills title="Transition" entries={transitionEntries} />
+        {shadowEntries.length > 0 && (
+          <div className="theme-tokens-section">
+            <h4 className="theme-tokens-section-title">Shadow</h4>
+            <div className="theme-shadow-preview">
+              {shadowEntries.map(([key, value]) => (
+                <div
+                  key={key}
+                  className="theme-shadow-swatch"
+                  style={{ boxShadow: value as string }}
+                  title={String(value)}
+                >
+                  <span className="theme-shadow-label">{key}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
+}
+
+/** Parse the first font name from a CSS font-family value (e.g. "'Noto Serif SC', serif" → "Noto Serif SC") */
+function getFirstFontName(stack: string): string {
+  const first = stack.split(',')[0].trim();
+  return first.replace(/^['"]|['"]$/g, '') || first;
 }
 
 function formatColorName(name: string): string {
