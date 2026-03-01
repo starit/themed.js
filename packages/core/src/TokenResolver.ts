@@ -1,4 +1,18 @@
-import type { ThemeTokens, ColorTokens, TypographyTokens } from './types/tokens';
+import type {
+  ThemeTokens,
+  ColorTokens,
+  TypographyTokens,
+  SpacingTokens,
+  RadiusTokens,
+  ShadowTokens,
+  TransitionTokens,
+} from './types/tokens';
+import {
+  defaultSpacingTokens,
+  defaultRadiusTokens,
+  defaultShadowTokens,
+  defaultTransitionTokens,
+} from './types/tokens';
 
 /**
  * Token path type for nested access
@@ -8,7 +22,11 @@ export type TokenPath =
   | `typography.fontFamily.${keyof TypographyTokens['fontFamily']}`
   | `typography.fontSize.${keyof TypographyTokens['fontSize']}`
   | `typography.fontWeight.${keyof TypographyTokens['fontWeight']}`
-  | `typography.lineHeight.${keyof TypographyTokens['lineHeight']}`;
+  | `typography.lineHeight.${keyof TypographyTokens['lineHeight']}`
+  | `spacing.${keyof SpacingTokens}`
+  | `radius.${keyof RadiusTokens}`
+  | `shadow.${keyof ShadowTokens}`
+  | `transition.${keyof TransitionTokens}`;
 
 /**
  * Flattened tokens map
@@ -57,6 +75,30 @@ export class TokenResolver {
     // Line heights
     for (const [key, value] of Object.entries(typography.lineHeight)) {
       result[`line-height-${key}`] = value;
+    }
+
+    // Spacing (merge with defaults if missing)
+    const spacing = tokens.spacing ?? defaultSpacingTokens;
+    for (const [key, value] of Object.entries(spacing)) {
+      result[`spacing-${key}`] = value;
+    }
+
+    // Radius (merge with defaults if missing)
+    const radius = tokens.radius ?? defaultRadiusTokens;
+    for (const [key, value] of Object.entries(radius)) {
+      result[`radius-${key}`] = value;
+    }
+
+    // Shadow (merge with defaults if missing)
+    const shadow = tokens.shadow ?? defaultShadowTokens;
+    for (const [key, value] of Object.entries(shadow)) {
+      result[`shadow-${key}`] = value;
+    }
+
+    // Transition (merge with defaults if missing)
+    const transition = tokens.transition ?? defaultTransitionTokens;
+    for (const [key, value] of Object.entries(transition)) {
+      result[`transition-${key}`] = value;
     }
 
     return result;
@@ -119,6 +161,15 @@ export class TokenResolver {
 
     if (parts[0] === 'typography') {
       return `${this.prefix}-${parts[1].replace(/([A-Z])/g, '-$1').toLowerCase()}-${parts[2]}`;
+    }
+
+    if (
+      parts[0] === 'spacing' ||
+      parts[0] === 'radius' ||
+      parts[0] === 'shadow' ||
+      parts[0] === 'transition'
+    ) {
+      return `${this.prefix}-${parts[0]}-${parts[1]}`;
     }
 
     return `${this.prefix}-${parts.join('-')}`;

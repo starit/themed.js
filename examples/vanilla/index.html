@@ -356,6 +356,336 @@
     #status.error {
       color: var(--themed-color-error);
     }
+
+    .style-demo {
+      margin-top: 2rem;
+      padding: var(--themed-spacing-xl, 1.5rem);
+      border-radius: var(--themed-radius-lg, 0.75rem);
+    }
+
+    .style-demo-title {
+      margin-bottom: var(--themed-spacing-sm, 0.5rem);
+      color: var(--themed-color-primary);
+    }
+
+    .style-demo-desc {
+      font-size: var(--themed-font-size-sm);
+      color: var(--themed-color-text-secondary);
+      margin-bottom: var(--themed-spacing-xl, 1.5rem);
+    }
+
+    .style-demo-section {
+      margin-bottom: var(--themed-spacing-xl, 1.5rem);
+    }
+
+    .style-demo-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .style-demo-section-title {
+      font-size: var(--themed-font-size-sm);
+      font-weight: var(--themed-font-weight-semibold);
+      color: var(--themed-color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--themed-spacing-sm, 0.5rem);
+    }
+
+    .style-demo-btn {
+      padding: var(--themed-spacing-sm, 0.5rem) var(--themed-spacing-lg, 1rem);
+      font-size: var(--themed-font-size-base);
+      font-weight: var(--themed-font-weight-medium);
+      font-family: inherit;
+      border: none;
+      border-radius: var(--themed-radius-md, 0.5rem);
+      cursor: default;
+    }
+
+    .style-demo-btn-primary {
+      background-color: var(--themed-color-primary);
+      color: var(--themed-color-text-inverse);
+    }
+
+    .style-demo-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--themed-spacing-sm, 0.5rem);
+    }
+
+    .style-demo-btn-secondary {
+      background-color: var(--themed-color-secondary);
+      color: var(--themed-color-text-inverse);
+    }
+
+    .style-demo-btn-outline {
+      background-color: transparent;
+      color: var(--themed-color-text-primary);
+      border: 2px solid var(--themed-color-border);
+    }
+
+    .style-demo-accent-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: var(--themed-spacing-xs, 0.25rem) var(--themed-spacing-md, 0.75rem);
+      background-color: var(--themed-color-accent);
+      color: var(--themed-color-text-inverse);
+      font-size: var(--themed-font-size-sm);
+      font-weight: var(--themed-font-weight-medium);
+      border-radius: var(--themed-radius-full, 9999px);
+    }
+
+    .style-demo-alerts {
+      display: flex;
+      flex-direction: column;
+      gap: var(--themed-spacing-sm, 0.5rem);
+    }
+
+    .style-demo-alert {
+      display: flex;
+      flex-direction: column;
+      gap: var(--themed-spacing-xs, 0.25rem);
+      padding: var(--themed-spacing-md, 0.75rem);
+      border-radius: var(--themed-radius-md, 0.5rem);
+      font-size: var(--themed-font-size-sm);
+      color: var(--themed-color-text-inverse);
+    }
+
+    .style-demo-alert strong {
+      font-weight: var(--themed-font-weight-semibold);
+    }
+
+    .style-demo-alert span {
+      opacity: 0.95;
+    }
+
+    .style-demo-error {
+      background-color: var(--themed-color-error);
+    }
+
+    .style-demo-warning {
+      background-color: var(--themed-color-warning);
+    }
+
+    .style-demo-success {
+      background-color: var(--themed-color-success);
+    }
+
+    .style-demo-info {
+      background-color: var(--themed-color-info);
+    }
+
+    .style-demo-text-block {
+      display: flex;
+      flex-direction: column;
+      gap: var(--themed-spacing-sm, 0.5rem);
+    }
+
+    .style-demo-heading {
+      font-size: var(--themed-font-size-lg);
+      font-weight: var(--themed-font-weight-bold);
+      color: var(--themed-color-primary);
+    }
+
+    .style-demo-body {
+      font-size: var(--themed-font-size-base);
+      color: var(--themed-color-text-primary);
+      margin: 0;
+    }
+
+    .style-demo-caption {
+      font-size: var(--themed-font-size-sm);
+      color: var(--themed-color-text-secondary);
+      margin: 0;
+    }
+
+    .style-demo-disabled {
+      font-size: var(--themed-font-size-sm);
+      color: var(--themed-color-text-disabled);
+      margin: 0;
+    }
+
+    .style-demo-tokens {
+      display: flex;
+      flex-direction: column;
+      gap: var(--themed-spacing-lg, 1rem);
+    }
+
+    .style-demo-spacing-dots {
+      display: flex;
+      align-items: center;
+      gap: var(--themed-spacing-md, 0.75rem);
+    }
+
+    .style-demo-spacing-dots .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--themed-color-primary);
+    }
+
+    .style-demo-radius-samples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--themed-spacing-sm, 0.5rem);
+    }
+
+    .radius-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 3rem;
+      padding: var(--themed-spacing-sm, 0.5rem);
+      font-size: var(--themed-font-size-xs);
+      color: var(--themed-color-text-secondary);
+      background-color: var(--themed-color-surface);
+      border: 1px solid var(--themed-color-border);
+    }
+
+    .radius-box.radius-sm {
+      border-radius: var(--themed-radius-sm, 0.25rem);
+    }
+
+    .radius-box.radius-md {
+      border-radius: var(--themed-radius-md, 0.5rem);
+    }
+
+    .radius-box.radius-lg {
+      border-radius: var(--themed-radius-lg, 0.75rem);
+    }
+
+    .style-demo-shadow-samples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--themed-spacing-sm, 0.5rem);
+    }
+
+    .shadow-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 3rem;
+      padding: var(--themed-spacing-sm, 0.5rem);
+      font-size: var(--themed-font-size-xs);
+      color: var(--themed-color-text-secondary);
+      background-color: var(--themed-color-surface);
+      border: 1px solid var(--themed-color-border);
+      border-radius: var(--themed-radius-md, 0.5rem);
+    }
+
+    .shadow-box.shadow-none {
+      box-shadow: var(--themed-shadow-none, none);
+    }
+
+    .shadow-box.shadow-sm {
+      box-shadow: var(--themed-shadow-sm);
+    }
+
+    .shadow-box.shadow-md {
+      box-shadow: var(--themed-shadow-md);
+    }
+
+    .shadow-box.shadow-lg {
+      box-shadow: var(--themed-shadow-lg);
+    }
+
+    .style-demo-transition-samples {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--themed-spacing-sm, 0.5rem);
+    }
+
+    .transition-dot {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 3.5rem;
+      padding: var(--themed-spacing-xs, 0.25rem) var(--themed-spacing-sm, 0.5rem);
+      font-size: var(--themed-font-size-xs);
+      color: var(--themed-color-text-primary);
+      background-color: var(--themed-color-surface);
+      border: 1px solid var(--themed-color-border);
+      border-radius: var(--themed-radius-full, 9999px);
+      cursor: default;
+    }
+
+    .transition-dot:hover {
+      background-color: var(--themed-color-primary);
+      color: var(--themed-color-text-inverse);
+      border-color: var(--themed-color-primary);
+    }
+
+    .transition-dot.transition-fast {
+      transition: background-color var(--themed-transition-fast, 150ms),
+        color var(--themed-transition-fast, 150ms),
+        border-color var(--themed-transition-fast, 150ms);
+    }
+
+    .transition-dot.transition-normal {
+      transition: background-color var(--themed-transition-normal, 250ms),
+        color var(--themed-transition-normal, 250ms),
+        border-color var(--themed-transition-normal, 250ms);
+    }
+
+    .transition-dot.transition-slow {
+      transition: background-color var(--themed-transition-slow, 400ms),
+        color var(--themed-transition-slow, 400ms),
+        border-color var(--themed-transition-slow, 400ms);
+    }
+
+    .style-demo-typo {
+      display: flex;
+      flex-direction: column;
+      gap: var(--themed-spacing-sm, 0.5rem);
+    }
+
+    .style-demo-font-sans {
+      font-family: var(--themed-font-family-sans);
+      font-size: var(--themed-font-size-sm);
+    }
+
+    .style-demo-font-serif {
+      font-family: var(--themed-font-family-serif);
+      font-size: var(--themed-font-size-sm);
+    }
+
+    .style-demo-font-mono {
+      font-family: var(--themed-font-family-mono);
+      font-size: var(--themed-font-size-sm);
+    }
+
+    .style-demo-sizes {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: var(--themed-spacing-md, 0.75rem);
+      margin-top: var(--themed-spacing-xs, 0.25rem);
+    }
+
+    .style-demo-size-xs {
+      font-size: var(--themed-font-size-xs);
+      color: var(--themed-color-text-secondary);
+    }
+
+    .style-demo-size-sm {
+      font-size: var(--themed-font-size-sm);
+      color: var(--themed-color-text-secondary);
+    }
+
+    .style-demo-size-base {
+      font-size: var(--themed-font-size-base);
+      color: var(--themed-color-text-secondary);
+    }
+
+    .style-demo-size-lg {
+      font-size: var(--themed-font-size-lg);
+      color: var(--themed-color-text-secondary);
+    }
+
+    .style-demo-size-xl {
+      font-size: var(--themed-font-size-xl);
+      color: var(--themed-color-text-secondary);
+    }
   </style>
 </head>
 <body>
@@ -443,6 +773,108 @@
       <div class="color-preview" id="color-preview">
         <!-- Color swatches will be inserted here -->
       </div>
+    </div>
+
+    <div class="card style-demo">
+      <h3 class="style-demo-title">Style Demo</h3>
+      <p class="style-demo-desc">
+        Theme tokens in use: hierarchy (primary vs secondary), state colors, text levels, spacing & radius, and typography.
+      </p>
+
+      <section class="style-demo-section">
+        <h4 class="style-demo-section-title">Primary (main action)</h4>
+        <button type="button" class="style-demo-btn style-demo-btn-primary">Primary action</button>
+      </section>
+
+      <section class="style-demo-section">
+        <h4 class="style-demo-section-title">Secondary (supporting)</h4>
+        <div class="style-demo-actions">
+          <button type="button" class="style-demo-btn style-demo-btn-secondary">Secondary</button>
+          <button type="button" class="style-demo-btn style-demo-btn-outline">Outline</button>
+          <span class="style-demo-accent-badge">Accent</span>
+        </div>
+      </section>
+
+      <section class="style-demo-section">
+        <h4 class="style-demo-section-title">State (alerts)</h4>
+        <div class="style-demo-alerts">
+          <div class="style-demo-alert style-demo-error">
+            <strong>Error</strong>
+            <span>Something went wrong. Please try again.</span>
+          </div>
+          <div class="style-demo-alert style-demo-warning">
+            <strong>Warning</strong>
+            <span>Your session will expire in 5 minutes.</span>
+          </div>
+          <div class="style-demo-alert style-demo-success">
+            <strong>Success</strong>
+            <span>Your changes have been saved.</span>
+          </div>
+          <div class="style-demo-alert style-demo-info">
+            <strong>Info</strong>
+            <span>New features are available in settings.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="style-demo-section">
+        <h4 class="style-demo-section-title">Text hierarchy</h4>
+        <div class="style-demo-text-block">
+          <div class="style-demo-heading">Heading (primary color)</div>
+          <p class="style-demo-body">Body text uses text primary for readability.</p>
+          <p class="style-demo-caption">Caption or secondary label uses text secondary.</p>
+          <p class="style-demo-disabled">Disabled or muted uses text disabled.</p>
+        </div>
+      </section>
+
+      <section class="style-demo-section">
+        <h4 class="style-demo-section-title">Spacing & radius</h4>
+        <div class="style-demo-tokens">
+          <div class="style-demo-spacing-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          <div class="style-demo-radius-samples">
+            <span class="radius-box radius-sm">sm</span>
+            <span class="radius-box radius-md">md</span>
+            <span class="radius-box radius-lg">lg</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="style-demo-section">
+        <h4 class="style-demo-section-title">Shadow & transition</h4>
+        <div class="style-demo-tokens">
+          <div class="style-demo-shadow-samples">
+            <span class="shadow-box shadow-none">none</span>
+            <span class="shadow-box shadow-sm">sm</span>
+            <span class="shadow-box shadow-md">md</span>
+            <span class="shadow-box shadow-lg">lg</span>
+          </div>
+          <div class="style-demo-transition-samples">
+            <span class="transition-dot transition-fast" title="fast">fast</span>
+            <span class="transition-dot transition-normal" title="normal">normal</span>
+            <span class="transition-dot transition-slow" title="slow">slow</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="style-demo-section">
+        <h4 class="style-demo-section-title">Typography</h4>
+        <div class="style-demo-typo">
+          <div class="style-demo-font-sans">Sans: The quick brown fox</div>
+          <div class="style-demo-font-serif">Serif: The quick brown fox</div>
+          <div class="style-demo-font-mono">Mono: The quick brown fox</div>
+          <div class="style-demo-sizes">
+            <span class="style-demo-size-xs">xs</span>
+            <span class="style-demo-size-sm">sm</span>
+            <span class="style-demo-size-base">base</span>
+            <span class="style-demo-size-lg">lg</span>
+            <span class="style-demo-size-xl">xl</span>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 

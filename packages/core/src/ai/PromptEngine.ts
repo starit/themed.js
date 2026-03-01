@@ -1,7 +1,13 @@
 import type { Message } from './providers/base';
 import type { Theme } from '../types/theme';
 import type { ThemeTokens, ColorTokens, TypographyTokens } from '../types/tokens';
-import { defaultTypographyTokens } from '../types/tokens';
+import {
+  defaultTypographyTokens,
+  defaultSpacingTokens,
+  defaultRadiusTokens,
+  defaultShadowTokens,
+  defaultTransitionTokens,
+} from '../types/tokens';
 
 /**
  * System prompt for theme generation
@@ -172,7 +178,13 @@ Remember: Respond with ONLY the complete JSON object (including both colors and 
       typography = { ...defaultTypographyTokens };
     }
 
-    return { colors, typography };
+    // Spacing, radius, shadow, transition: use defaults (AI only generates colors/typography for now)
+    const spacing = defaultSpacingTokens;
+    const radius = defaultRadiusTokens;
+    const shadow = defaultShadowTokens;
+    const transition = defaultTransitionTokens;
+
+    return { colors, typography, spacing, radius, shadow, transition };
   }
 
   /**

@@ -20,6 +20,7 @@ function App() {
       <AIConfigPanel />
       <AIGenerator />
       <ColorPreview />
+      <StyleDemo />
     </div>
   );
 }
@@ -312,6 +313,125 @@ function ColorPreview() {
 
 function formatColorName(name: string): string {
   return name.replace(/([A-Z])/g, ' $1').trim();
+}
+
+function StyleDemo() {
+  return (
+    <div className="card style-demo">
+      <h3 className="style-demo-title">Style Demo</h3>
+      <p className="style-demo-desc">
+        Theme tokens in use: hierarchy (primary vs secondary), state colors, text levels, spacing & radius, and typography.
+      </p>
+
+      {/* Primary level: main CTA */}
+      <section className="style-demo-section">
+        <h4 className="style-demo-section-title">Primary (main action)</h4>
+        <button type="button" className="style-demo-btn style-demo-btn-primary">
+          Primary action
+        </button>
+      </section>
+
+      {/* Secondary level: supporting actions */}
+      <section className="style-demo-section">
+        <h4 className="style-demo-section-title">Secondary (supporting)</h4>
+        <div className="style-demo-actions">
+          <button type="button" className="style-demo-btn style-demo-btn-secondary">
+            Secondary
+          </button>
+          <button type="button" className="style-demo-btn style-demo-btn-outline">
+            Outline
+          </button>
+          <span className="style-demo-accent-badge">Accent</span>
+        </div>
+      </section>
+
+      {/* State alerts with context */}
+      <section className="style-demo-section">
+        <h4 className="style-demo-section-title">State (alerts)</h4>
+        <div className="style-demo-alerts">
+          <div className="style-demo-alert style-demo-error">
+            <strong>Error</strong>
+            <span>Something went wrong. Please try again.</span>
+          </div>
+          <div className="style-demo-alert style-demo-warning">
+            <strong>Warning</strong>
+            <span>Your session will expire in 5 minutes.</span>
+          </div>
+          <div className="style-demo-alert style-demo-success">
+            <strong>Success</strong>
+            <span>Your changes have been saved.</span>
+          </div>
+          <div className="style-demo-alert style-demo-info">
+            <strong>Info</strong>
+            <span>New features are available in settings.</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Text hierarchy */}
+      <section className="style-demo-section">
+        <h4 className="style-demo-section-title">Text hierarchy</h4>
+        <div className="style-demo-text-block">
+          <div className="style-demo-heading">Heading (primary color)</div>
+          <p className="style-demo-body">Body text uses text primary for readability.</p>
+          <p className="style-demo-caption">Caption or secondary label uses text secondary.</p>
+          <p className="style-demo-disabled">Disabled or muted uses text disabled.</p>
+        </div>
+      </section>
+
+      {/* Spacing & radius from theme */}
+      <section className="style-demo-section">
+        <h4 className="style-demo-section-title">Spacing & radius</h4>
+        <div className="style-demo-tokens">
+          <div className="style-demo-spacing-dots">
+            <span className="dot" />
+            <span className="dot" />
+            <span className="dot" />
+          </div>
+          <div className="style-demo-radius-samples">
+            <span className="radius-box radius-sm">sm</span>
+            <span className="radius-box radius-md">md</span>
+            <span className="radius-box radius-lg">lg</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Shadow & transition */}
+      <section className="style-demo-section">
+        <h4 className="style-demo-section-title">Shadow & transition</h4>
+        <div className="style-demo-tokens">
+          <div className="style-demo-shadow-samples">
+            <span className="shadow-box shadow-none">none</span>
+            <span className="shadow-box shadow-sm">sm</span>
+            <span className="shadow-box shadow-md">md</span>
+            <span className="shadow-box shadow-lg">lg</span>
+          </div>
+          <div className="style-demo-transition-samples">
+            <span className="transition-dot transition-fast" title="fast">fast</span>
+            <span className="transition-dot transition-normal" title="normal">normal</span>
+            <span className="transition-dot transition-slow" title="slow">slow</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Typography */}
+      <section className="style-demo-section">
+        <h4 className="style-demo-section-title">Typography</h4>
+        <div className="style-demo-typo">
+          <div className="style-demo-font-sans">Sans: The quick brown fox</div>
+          <div className="style-demo-font-serif">Serif: The quick brown fox</div>
+          <div className="style-demo-font-mono">Mono: The quick brown fox</div>
+          <div className="style-demo-sizes">
+            <span className="style-demo-size-xs">xs</span>
+            <span className="style-demo-size-sm">sm</span>
+            <span className="style-demo-size-base">base</span>
+            <span className="style-demo-size-lg">lg</span>
+            <span className="style-demo-size-xl">xl</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }
 
 export default App;

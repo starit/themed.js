@@ -287,5 +287,108 @@ const downloadThemeColors = () => {
         </div>
       </div>
     </div>
+
+    <!-- Style Demo -->
+    <div class="card style-demo">
+      <h3 class="style-demo-title">Style Demo</h3>
+      <p class="style-demo-desc">
+        Theme tokens in use: hierarchy (primary vs secondary), state colors, text levels, spacing & radius, and typography.
+      </p>
+
+      <section class="style-demo-section">
+        <h4 class="style-demo-section-title">Primary (main action)</h4>
+        <button type="button" class="style-demo-btn style-demo-btn-primary">Primary action</button>
+      </section>
+
+      <section class="style-demo-section">
+        <h4 class="style-demo-section-title">Secondary (supporting)</h4>
+        <div class="style-demo-actions">
+          <button type="button" class="style-demo-btn style-demo-btn-secondary">Secondary</button>
+          <button type="button" class="style-demo-btn style-demo-btn-outline">Outline</button>
+          <span class="style-demo-accent-badge">Accent</span>
+        </div>
+      </section>
+
+      <section class="style-demo-section">
+        <h4 class="style-demo-section-title">State (alerts)</h4>
+        <div class="style-demo-alerts">
+          <div class="style-demo-alert style-demo-error">
+            <strong>Error</strong>
+            <span>Something went wrong. Please try again.</span>
+          </div>
+          <div class="style-demo-alert style-demo-warning">
+            <strong>Warning</strong>
+            <span>Your session will expire in 5 minutes.</span>
+          </div>
+          <div class="style-demo-alert style-demo-success">
+            <strong>Success</strong>
+            <span>Your changes have been saved.</span>
+          </div>
+          <div class="style-demo-alert style-demo-info">
+            <strong>Info</strong>
+            <span>New features are available in settings.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="style-demo-section">
+        <h4 class="style-demo-section-title">Text hierarchy</h4>
+        <div class="style-demo-text-block">
+          <div class="style-demo-heading">Heading (primary color)</div>
+          <p class="style-demo-body">Body text uses text primary for readability.</p>
+          <p class="style-demo-caption">Caption or secondary label uses text secondary.</p>
+          <p class="style-demo-disabled">Disabled or muted uses text disabled.</p>
+        </div>
+      </section>
+
+      <section class="style-demo-section">
+        <h4 class="style-demo-section-title">Spacing & radius</h4>
+        <div class="style-demo-tokens">
+          <div class="style-demo-spacing-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          <div class="style-demo-radius-samples">
+            <span class="radius-box radius-sm">sm</span>
+            <span class="radius-box radius-md">md</span>
+            <span class="radius-box radius-lg">lg</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="style-demo-section">
+        <h4 class="style-demo-section-title">Shadow & transition</h4>
+        <div class="style-demo-tokens">
+          <div class="style-demo-shadow-samples">
+            <span class="shadow-box shadow-none">none</span>
+            <span class="shadow-box shadow-sm">sm</span>
+            <span class="shadow-box shadow-md">md</span>
+            <span class="shadow-box shadow-lg">lg</span>
+          </div>
+          <div class="style-demo-transition-samples">
+            <span class="transition-dot transition-fast" title="fast">fast</span>
+            <span class="transition-dot transition-normal" title="normal">normal</span>
+            <span class="transition-dot transition-slow" title="slow">slow</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="style-demo-section">
+        <h4 class="style-demo-section-title">Typography</h4>
+        <div class="style-demo-typo">
+          <div class="style-demo-font-sans">Sans: The quick brown fox</div>
+          <div class="style-demo-font-serif">Serif: The quick brown fox</div>
+          <div class="style-demo-font-mono">Mono: The quick brown fox</div>
+          <div class="style-demo-sizes">
+            <span class="style-demo-size-xs">xs</span>
+            <span class="style-demo-size-sm">sm</span>
+            <span class="style-demo-size-base">base</span>
+            <span class="style-demo-size-lg">lg</span>
+            <span class="style-demo-size-xl">xl</span>
+          </div>
+        </div>
+      </section>
+    </div>
   </div>
 </template>

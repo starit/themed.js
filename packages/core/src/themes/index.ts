@@ -1,5 +1,11 @@
 import type { Theme } from '../types/theme';
-import { defaultTypographyTokens } from '../types/tokens';
+import {
+  defaultTypographyTokens,
+  defaultSpacingTokens,
+  defaultRadiusTokens,
+  defaultShadowTokens,
+  defaultTransitionTokens,
+} from '../types/tokens';
 
 /**
  * Light theme - Clean and modern
@@ -28,6 +34,10 @@ export const lightTheme: Theme = {
       borderDark: '#d1d5db',
     },
     typography: defaultTypographyTokens,
+    spacing: defaultSpacingTokens,
+    radius: defaultRadiusTokens,
+    shadow: defaultShadowTokens,
+    transition: defaultTransitionTokens,
   },
   meta: {
     version: '1.0.0',
@@ -63,6 +73,10 @@ export const darkTheme: Theme = {
       borderDark: '#1f2937',
     },
     typography: defaultTypographyTokens,
+    spacing: defaultSpacingTokens,
+    radius: defaultRadiusTokens,
+    shadow: defaultShadowTokens,
+    transition: defaultTransitionTokens,
   },
   meta: {
     version: '1.0.0',
@@ -105,6 +119,10 @@ export const oceanTheme: Theme = {
         mono: '"JetBrains Mono", ui-monospace, monospace',
       },
     },
+    spacing: defaultSpacingTokens,
+    radius: defaultRadiusTokens,
+    shadow: defaultShadowTokens,
+    transition: defaultTransitionTokens,
   },
   meta: {
     version: '1.0.0',
@@ -147,6 +165,10 @@ export const forestTheme: Theme = {
         mono: '"Fira Code", ui-monospace, monospace',
       },
     },
+    spacing: defaultSpacingTokens,
+    radius: defaultRadiusTokens,
+    shadow: defaultShadowTokens,
+    transition: defaultTransitionTokens,
   },
   meta: {
     version: '1.0.0',
@@ -189,6 +211,10 @@ export const sunsetTheme: Theme = {
         mono: '"IBM Plex Mono", ui-monospace, monospace',
       },
     },
+    spacing: defaultSpacingTokens,
+    radius: defaultRadiusTokens,
+    shadow: defaultShadowTokens,
+    transition: defaultTransitionTokens,
   },
   meta: {
     version: '1.0.0',
@@ -231,6 +257,10 @@ export const midnightTheme: Theme = {
         mono: '"Cascadia Code", ui-monospace, monospace',
       },
     },
+    spacing: defaultSpacingTokens,
+    radius: defaultRadiusTokens,
+    shadow: defaultShadowTokens,
+    transition: defaultTransitionTokens,
   },
   meta: {
     version: '1.0.0',
@@ -273,6 +303,10 @@ export const roseTheme: Theme = {
         mono: '"Victor Mono", ui-monospace, monospace',
       },
     },
+    spacing: defaultSpacingTokens,
+    radius: defaultRadiusTokens,
+    shadow: defaultShadowTokens,
+    transition: defaultTransitionTokens,
   },
   meta: {
     version: '1.0.0',

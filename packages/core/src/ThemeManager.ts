@@ -24,6 +24,8 @@ export class ThemeManager {
   private aiOrchestrator: AIOrchestrator | null = null;
   private storageManager: StorageManager | null = null;
   private options: ThemeManagerOptions;
+  /** Current AI options (updated by configureAI); used so getAIConfig() reflects runtime config */
+  private currentAIOptions: AIOptions | null = null;
   private initialized = false;
 
   constructor(options: ThemeManagerOptions = {}) {
@@ -33,6 +35,7 @@ export class ThemeManager {
 
     // Initialize AI orchestrator if configured
     if (options.ai) {
+      this.currentAIOptions = options.ai;
       this.aiOrchestrator = new AIOrchestrator(options.ai);
     }
 
@@ -257,8 +260,8 @@ export class ThemeManager {
    * Get AI configuration info (provider and model) for display
    */
   getAIConfig(): { provider: string; model?: string } | null {
-    const ai = this.options.ai;
-    if (!ai) return null;
+    const ai = this.currentAIOptions ?? this.options.ai;
+    if (!ai || !this.aiOrchestrator) return null;
 
     const provider =
       typeof ai.provider === 'string' ? ai.provider : ai.provider.name;
@@ -276,6 +279,7 @@ export class ThemeManager {
    * Configure AI options
    */
   configureAI(options: AIOptions): void {
+    this.currentAIOptions = options;
     this.aiOrchestrator = new AIOrchestrator(options);
   }
 
@@ -305,6 +309,7 @@ export class ThemeManager {
     this.eventBus.clear();
     this.themes.clear();
     this.activeTheme = null;
+    this.currentAIOptions = null;
     this.initialized = false;
   }
 }
