@@ -34,6 +34,19 @@ describe('createTheme', () => {
     expect(theme.description).toBe('Generated');
     expect(theme.meta.source).toBe('ai');
   });
+
+  it('passes custom field through when provided', () => {
+    const custom = { brand: 'Acme', tone: 'professional' };
+    const input: ThemeInput = { id: 'c1', name: 'C', tokens: lightTheme.tokens, custom };
+    const theme = createTheme(input);
+    expect(theme.custom).toEqual(custom);
+  });
+
+  it('leaves custom undefined when not provided', () => {
+    const input: ThemeInput = { id: 'c2', name: 'C', tokens: lightTheme.tokens };
+    const theme = createTheme(input);
+    expect(theme.custom).toBeUndefined();
+  });
 });
 
 describe('isValidTheme', () => {
@@ -61,6 +74,25 @@ describe('isValidTheme', () => {
   it('returns false when tokens is missing or invalid', () => {
     expect(isValidTheme({ ...lightTheme, tokens: null as unknown as typeof lightTheme.tokens })).toBe(false);
     expect(isValidTheme({ ...lightTheme, tokens: {} as typeof lightTheme.tokens })).toBe(false);
+  });
+
+  it('accepts theme with valid custom object', () => {
+    expect(isValidTheme({ ...lightTheme, custom: { brand: 'Acme' } })).toBe(true);
+  });
+
+  it('accepts theme with custom: undefined (no custom field)', () => {
+    const { custom: _removed, ...withoutCustom } = { ...lightTheme, custom: undefined };
+    void _removed;
+    expect(isValidTheme(withoutCustom)).toBe(true);
+  });
+
+  it('returns false when custom is an array', () => {
+    expect(isValidTheme({ ...lightTheme, custom: ['not', 'an', 'object'] as unknown as Record<string, unknown> })).toBe(false);
+  });
+
+  it('returns false when custom is a non-object primitive', () => {
+    expect(isValidTheme({ ...lightTheme, custom: 'string' as unknown as Record<string, unknown> })).toBe(false);
+    expect(isValidTheme({ ...lightTheme, custom: 42 as unknown as Record<string, unknown> })).toBe(false);
   });
 
   it('returns false when tokens.colors or tokens.typography is missing', () => {

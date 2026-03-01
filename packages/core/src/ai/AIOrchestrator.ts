@@ -51,19 +51,22 @@ export class AIOrchestrator {
   }
 
   /**
-   * Generate theme with streaming (if supported)
+   * Generate theme with streaming (if supported).
+   * Yields partial text chunks; the final chunk has complete=true.
+   * When customSchema is provided, the streamed/complete JSON will include a "custom" field.
    */
   async *generateThemeStream(
-    prompt: string
+    prompt: string,
+    customSchema?: string
   ): AsyncIterable<{ partial: string; complete: boolean }> {
     if (!this.provider.stream) {
-      // Fall back to non-streaming
-      const result = await this.generateTheme(prompt);
-      yield { partial: JSON.stringify(result.tokens), complete: true };
+      // Fall back to non-streaming; preserve full result including custom
+      const result = await this.generateTheme(prompt, customSchema);
+      yield { partial: JSON.stringify({ tokens: result.tokens, custom: result.custom }), complete: true };
       return;
     }
 
-    const messages = this.promptEngine.buildGeneratePrompt(prompt);
+    const messages = this.promptEngine.buildGeneratePrompt(prompt, customSchema);
     let accumulated = '';
 
     for await (const chunk of this.provider.stream(messages)) {

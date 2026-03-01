@@ -497,6 +497,7 @@ function updateAIGenerationUI() {
   const modelBadge = document.getElementById('model-badge')!;
   const button = document.getElementById('ai-generate') as HTMLButtonElement;
   const status = document.getElementById('status')!;
+  const clearBtn = document.getElementById('ai-config-clear') as HTMLButtonElement | null;
 
   const aiConfig = themed.getAIConfig();
   const isConfigured = themed.getAIOrchestrator() !== null;
@@ -508,6 +509,10 @@ function updateAIGenerationUI() {
     modelBadge.style.display = '';
   } else {
     modelBadge.style.display = 'none';
+  }
+
+  if (clearBtn) {
+    clearBtn.style.display = isConfigured ? '' : 'none';
   }
 
   if (!isConfigured) {

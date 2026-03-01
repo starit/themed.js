@@ -90,5 +90,37 @@ describe('ThemeManager', () => {
       expect(manager.getAll()).toHaveLength(0);
       expect(document.getElementById('themed-js-styles')).toBeNull();
     });
+
+    it('clears aiOrchestrator and storageManager after destroy', () => {
+      manager.destroy();
+      expect(manager.getAIOrchestrator()).toBeNull();
+      expect(manager.getStorageManager()).toBeNull();
+    });
+  });
+
+  describe('updateThemeCustom', () => {
+    it('updates custom data on a registered theme', () => {
+      const custom = { brand: 'Acme', tier: 'pro' };
+      manager.updateThemeCustom('light', custom);
+      expect(manager.get('light')?.custom).toEqual(custom);
+    });
+
+    it('updates activeTheme reference when the active theme is patched', async () => {
+      await manager.apply('light');
+      const custom = { tag: 'active-update' };
+      manager.updateThemeCustom('light', custom);
+      expect(manager.getActive()?.custom).toEqual(custom);
+    });
+
+    it('does not affect activeTheme when a different theme is patched', async () => {
+      await manager.apply('light');
+      manager.updateThemeCustom('dark', { tag: 'other' });
+      expect(manager.getActive()?.id).toBe('light');
+      expect(manager.getActive()?.custom).toBeUndefined();
+    });
+
+    it('throws when the theme id does not exist', () => {
+      expect(() => manager.updateThemeCustom('nonexistent', {})).toThrow();
+    });
   });
 });

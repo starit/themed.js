@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
 import { useTheme, useAITheme } from '@themed.js/vue';
 import { createTheme } from '@themed.js/core';
 
@@ -113,10 +113,10 @@ const formatColorName = (name: string): string => {
   return name.replace(/([A-Z])/g, ' $1').trim();
 };
 
-const displayColors = () => {
+const displayColors = computed(() => {
   if (!theme.value) return [];
   return Object.entries(theme.value.tokens.colors);
-};
+});
 
 const toHexDisplay = (value: string): string => {
   const hex = /^#?([a-f\d]{6}|[a-f\d]{3})$/i.exec(value);
@@ -131,7 +131,7 @@ const toHexDisplay = (value: string): string => {
   return value;
 };
 
-const getThemeExportData = () => {
+const themeExportData = computed(() => {
   if (!theme.value) return null;
   return {
     theme: { name: theme.value.name, id: theme.value.id },
@@ -139,10 +139,10 @@ const getThemeExportData = () => {
     custom: theme.value.custom,
     exportedAt: new Date().toISOString(),
   };
-};
+});
 
 const downloadThemeTokens = () => {
-  const data = getThemeExportData();
+  const data = themeExportData.value;
   if (!data) return;
   const blob = new Blob([JSON.stringify(data, null, 2)], {
     type: 'application/json',
@@ -246,14 +246,18 @@ const handleAttachCustom = () => {
   }
 };
 
-const spacingEntries = () =>
-  theme.value?.tokens.spacing ? Object.entries(theme.value.tokens.spacing) : [];
-const radiusEntries = () =>
-  theme.value?.tokens.radius ? Object.entries(theme.value.tokens.radius) : [];
-const shadowEntries = () =>
-  theme.value?.tokens.shadow ? Object.entries(theme.value.tokens.shadow) : [];
-const transitionEntries = () =>
-  theme.value?.tokens.transition ? Object.entries(theme.value.tokens.transition) : [];
+const spacingEntries = computed(() =>
+  theme.value?.tokens.spacing ? Object.entries(theme.value.tokens.spacing) : []
+);
+const radiusEntries = computed(() =>
+  theme.value?.tokens.radius ? Object.entries(theme.value.tokens.radius) : []
+);
+const shadowEntries = computed(() =>
+  theme.value?.tokens.shadow ? Object.entries(theme.value.tokens.shadow) : []
+);
+const transitionEntries = computed(() =>
+  theme.value?.tokens.transition ? Object.entries(theme.value.tokens.transition) : []
+);
 </script>
 
 <template>
@@ -424,7 +428,7 @@ const transitionEntries = () =>
               <h4>Theme JSON</h4>
               <button type="button" class="json-modal-close" @click="showViewJson = false">Close</button>
             </div>
-            <pre class="json-modal-body">{{ getThemeExportData() ? JSON.stringify(getThemeExportData(), null, 2) : '' }}</pre>
+            <pre class="json-modal-body">{{ themeExportData ? JSON.stringify(themeExportData, null, 2) : '' }}</pre>
           </div>
         </div>
 
@@ -457,7 +461,7 @@ const transitionEntries = () =>
           <h4 class="theme-tokens-section-title">Colors</h4>
           <div class="color-preview">
             <div
-              v-for="[name, value] in displayColors()"
+              v-for="[name, value] in displayColors"
               :key="name"
               class="color-swatch"
             >
@@ -502,11 +506,11 @@ const transitionEntries = () =>
         </div>
 
         <div class="theme-tokens-row">
-          <div v-if="spacingEntries().length" class="theme-tokens-section">
+          <div v-if="spacingEntries.length" class="theme-tokens-section">
             <h4 class="theme-tokens-section-title">Spacing</h4>
             <div class="theme-token-pills">
               <span
-                v-for="[key, value] in spacingEntries()"
+                v-for="[key, value] in spacingEntries"
                 :key="key"
                 class="theme-token-pill"
                 :title="value"
@@ -516,11 +520,11 @@ const transitionEntries = () =>
               </span>
             </div>
           </div>
-          <div v-if="radiusEntries().length" class="theme-tokens-section">
+          <div v-if="radiusEntries.length" class="theme-tokens-section">
             <h4 class="theme-tokens-section-title">Radius</h4>
             <div class="theme-token-pills">
               <span
-                v-for="[key, value] in radiusEntries()"
+                v-for="[key, value] in radiusEntries"
                 :key="key"
                 class="theme-token-pill"
                 :title="value"
@@ -533,11 +537,11 @@ const transitionEntries = () =>
         </div>
 
         <div class="theme-tokens-row">
-          <div v-if="transitionEntries().length" class="theme-tokens-section">
+          <div v-if="transitionEntries.length" class="theme-tokens-section">
             <h4 class="theme-tokens-section-title">Transition</h4>
             <div class="theme-token-pills">
               <span
-                v-for="[key, value] in transitionEntries()"
+                v-for="[key, value] in transitionEntries"
                 :key="key"
                 class="theme-token-pill"
                 :title="value"
@@ -547,11 +551,11 @@ const transitionEntries = () =>
               </span>
             </div>
           </div>
-          <div v-if="shadowEntries().length" class="theme-tokens-section">
+          <div v-if="shadowEntries.length" class="theme-tokens-section">
             <h4 class="theme-tokens-section-title">Shadow</h4>
             <div class="theme-shadow-preview">
               <div
-                v-for="[key, value] in shadowEntries()"
+                v-for="[key, value] in shadowEntries"
                 :key="key"
                 class="theme-shadow-swatch"
                 :style="{ boxShadow: value }"

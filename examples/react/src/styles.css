@@ -492,7 +492,7 @@ p {
   border: 1px solid var(--themed-color-primary);
   border-radius: 0.375rem;
   background: var(--themed-color-primary);
-  color: var(--themed-color-inverse);
+  color: var(--themed-color-text-inverse);
   cursor: pointer;
   align-self: flex-start;
 }

@@ -12,7 +12,6 @@ import { EventBus } from './EventBus';
 import { CSSInjector } from './CSSInjector';
 import type { IAIThemeGenerator } from './ai/types';
 import { createAIOrchestrator } from './ai/createAIOrchestrator';
-import { AIOrchestrator } from './ai/AIOrchestrator';
 import { StorageManager } from './storage/StorageManager';
 
 /**
@@ -268,10 +267,10 @@ export class ThemeManager {
   }
 
   /**
-   * Get the AI orchestrator instance (concrete type for consumers that need it).
+   * Returns the AI generator instance, or null if AI is not configured.
    */
-  getAIOrchestrator(): AIOrchestrator | null {
-    return this.aiOrchestrator as AIOrchestrator | null;
+  getAIOrchestrator(): IAIThemeGenerator | null {
+    return this.aiOrchestrator;
   }
 
   /**
@@ -327,6 +326,8 @@ export class ThemeManager {
     this.eventBus.clear();
     this.themes.clear();
     this.activeTheme = null;
+    this.aiOrchestrator = null;
+    this.storageManager = null;
     this.currentAIOptions = null;
     this.initialized = false;
   }

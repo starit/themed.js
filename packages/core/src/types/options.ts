@@ -94,8 +94,6 @@ export interface GenerateOptions {
   autoSave?: boolean;
   /** Base theme to modify (for adjustments) */
   baseTheme?: Theme;
-  /** Custom temperature for AI generation */
-  temperature?: number;
   /**
    * Optional description of custom structured data to generate alongside the theme.
    * Accepts natural language ("brand guide with name, tone, and use cases")
