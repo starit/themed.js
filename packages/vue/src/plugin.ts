@@ -155,7 +155,7 @@ declare module 'vue' {
     $themed: {
       manager: ThemeManager;
       apply: (themeId: string) => Promise<void>;
-      generate: (prompt: string) => Promise<Theme>;
+      generate: (prompt: string, options?: { customSchema?: string }) => Promise<Theme>;
     };
   }
 }

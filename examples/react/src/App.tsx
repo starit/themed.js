@@ -199,13 +199,17 @@ function formatProviderName(provider: string): string {
 function AIGenerator() {
   const { generate, isGenerating, error, isConfigured, modelInfo } = useAITheme();
   const [prompt, setPrompt] = useState('');
+  const [customSchema, setCustomSchema] = useState('');
+  const [showCustomSchema, setShowCustomSchema] = useState(false);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
 
     try {
-      await generate(prompt);
+      const trimmed = customSchema.trim();
+      await generate(prompt, trimmed ? { customSchema: trimmed } : undefined);
       setPrompt('');
+      // Preserve customSchema so user can reuse the same structure
     } catch {
       // Error shown via useAITheme().error; do not log to avoid leaking any sensitive data
     }
@@ -228,7 +232,7 @@ function AIGenerator() {
           className="ai-input"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleGenerate()}
+          onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleGenerate()}
           placeholder="Describe your theme (e.g., 'A warm autumn sunset theme')"
           disabled={!isConfigured || isGenerating}
         />
@@ -240,6 +244,30 @@ function AIGenerator() {
           {isGenerating ? 'Generating...' : 'Generate'}
         </button>
       </div>
+      <div className="ai-custom-schema-toggle">
+        <button
+          type="button"
+          className="ai-custom-schema-toggle-btn"
+          onClick={() => setShowCustomSchema((v) => !v)}
+        >
+          {showCustomSchema ? '▲' : '▼'} Custom structure <span className="ai-custom-schema-optional">(optional)</span>
+        </button>
+      </div>
+      {showCustomSchema && (
+        <div className="ai-custom-schema-panel">
+          <p className="ai-custom-schema-hint">
+            Describe custom data to generate alongside the theme — in words or as a JSON skeleton:
+          </p>
+          <textarea
+            className="ai-custom-schema-textarea"
+            rows={3}
+            value={customSchema}
+            onChange={(e) => setCustomSchema(e.target.value)}
+            placeholder={`Describe in words: "brand guide with name, tone, and use cases"\nOr provide a skeleton: { "brandName": "...", "tone": "..." }`}
+            disabled={!isConfigured || isGenerating}
+          />
+        </div>
+      )}
       {!isConfigured && (
         <div className="status">AI not configured. Add your API key to enable.</div>
       )}
@@ -261,10 +289,11 @@ function toHexDisplay(value: string): string {
   return value;
 }
 
-function getThemeExportData(theme: { name: string; id: string; tokens: object }) {
+function getThemeExportData(theme: { name: string; id: string; tokens: object; custom?: Record<string, unknown> }) {
   return {
     theme: { name: theme.name, id: theme.id },
     tokens: theme.tokens,
+    custom: theme.custom,
     exportedAt: new Date().toISOString(),
   };
 }
@@ -282,20 +311,24 @@ function downloadThemeTokens(theme: { name: string; id: string; tokens: object }
   URL.revokeObjectURL(url);
 }
 
-/** Parse JSON string into theme input. Supports export format { theme, tokens } or { id, name, tokens }. */
-function parseThemeFromJson(json: string): { id: string; name: string; tokens: object } {
+/** Parse JSON string into theme input. Supports export format { theme, tokens, custom? } or { id, name, tokens, custom? }. */
+function parseThemeFromJson(json: string): { id: string; name: string; tokens: object; custom?: Record<string, unknown> } {
   const data = JSON.parse(json) as Record<string, unknown>;
   if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
   const tokens = data.tokens as Record<string, unknown> | undefined;
   if (!tokens || typeof tokens !== 'object' || !tokens.colors || !tokens.typography) {
     throw new Error('JSON must contain theme.tokens with colors and typography');
   }
+  const custom =
+    data.custom !== undefined && typeof data.custom === 'object' && data.custom !== null && !Array.isArray(data.custom)
+      ? (data.custom as Record<string, unknown>)
+      : undefined;
   const theme = data.theme as { id?: string; name?: string } | undefined;
   if (theme && typeof theme.id === 'string' && typeof theme.name === 'string') {
-    return { id: theme.id, name: theme.name, tokens };
+    return { id: theme.id, name: theme.name, tokens, custom };
   }
   if (typeof data.id === 'string' && typeof data.name === 'string') {
-    return { id: data.id, name: data.name, tokens };
+    return { id: data.id, name: data.name, tokens, custom };
   }
   throw new Error('JSON must contain theme.id/theme.name or top-level id/name');
 }
@@ -324,11 +357,22 @@ function TokenPills({
 }
 
 function ColorPreview() {
-  const { theme, register, apply } = useTheme();
+  const { theme, register, apply, updateThemeCustom } = useTheme();
   const [showViewJson, setShowViewJson] = useState(false);
   const [showImportJson, setShowImportJson] = useState(false);
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState('');
+  const [customText, setCustomText] = useState('');
+  const [customError, setCustomError] = useState('');
+
+  useEffect(() => {
+    if (theme?.custom != null && typeof theme.custom === 'object' && !Array.isArray(theme.custom) && Object.keys(theme.custom).length > 0) {
+      setCustomText(JSON.stringify(theme.custom, null, 2));
+    } else {
+      setCustomText('');
+    }
+    setCustomError('');
+  }, [theme?.id]);
 
   if (!theme) {
     return <div className="card">No theme selected</div>;
@@ -374,6 +418,21 @@ function ColorPreview() {
     };
     reader.readAsText(file);
     e.target.value = '';
+  };
+
+  const handleAttachCustom = () => {
+    setCustomError('');
+    try {
+      const parsed = JSON.parse(customText);
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        setCustomError('Root must be a plain object');
+        return;
+      }
+      updateThemeCustom(theme.id, parsed as Record<string, unknown>);
+      apply(theme.id);
+    } catch {
+      setCustomError('Invalid JSON');
+    }
   };
 
   return (
@@ -507,6 +566,29 @@ function ColorPreview() {
             </div>
           </div>
         )}
+      </div>
+
+      {theme.custom != null && typeof theme.custom === 'object' && !Array.isArray(theme.custom) && Object.keys(theme.custom).length > 0 && (
+        <div className="theme-tokens-section custom-data-section">
+          <h4 className="theme-tokens-section-title">Custom data</h4>
+          <pre className="custom-data-pre">{JSON.stringify(theme.custom, null, 2)}</pre>
+        </div>
+      )}
+
+      <div className="theme-tokens-section custom-structure-section">
+        <h4 className="theme-tokens-section-title">Custom structure</h4>
+        <p className="custom-structure-hint">Attach a JSON object to the current theme (e.g. {`{ "key": "value" }`}).</p>
+        <textarea
+          className="custom-structure-textarea"
+          placeholder='{ "key": "value" }'
+          value={customText}
+          onChange={(e) => { setCustomText(e.target.value); setCustomError(''); }}
+          rows={4}
+        />
+        {customError && <p className="custom-structure-error">{customError}</p>}
+        <button type="button" className="download-btn custom-structure-attach" onClick={handleAttachCustom} disabled={!customText.trim()}>
+          Attach to current theme
+        </button>
       </div>
     </div>
   );

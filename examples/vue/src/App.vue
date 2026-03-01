@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { useTheme, useAITheme } from '@themed.js/vue';
 import { createTheme } from '@themed.js/core';
 
@@ -14,7 +14,7 @@ const PROVIDERS = [
   { value: 'deepseek', label: 'DeepSeek', model: 'deepseek-chat' },
 ] as const;
 
-const { theme, themes, apply, register } = useTheme();
+const { theme, themes, apply, register, updateThemeCustom } = useTheme();
 const { generate, isGenerating, error, isConfigured, modelInfo, configureAI } = useAITheme();
 
 const apiKey = ref('');
@@ -92,13 +92,18 @@ const formatProviderName = (provider: string): string => {
 };
 
 const prompt = ref('');
+const customSchema = ref('');
+const showCustomSchema = ref(false);
+const customSchemaPlaceholder = 'Describe in words: "brand guide with name, tone, and use cases"\nOr provide a skeleton: { "brandName": "...", "tone": "..." }';
 
 const handleGenerate = async () => {
   if (!prompt.value.trim()) return;
 
   try {
-    await generate(prompt.value);
+    const trimmed = customSchema.value.trim();
+    await generate(prompt.value, trimmed ? { customSchema: trimmed } : undefined);
     prompt.value = '';
+    // Preserve customSchema so user can reuse the same structure
   } catch {
     // Error shown via useAITheme().error; do not log to avoid leaking any sensitive data
   }
@@ -131,6 +136,7 @@ const getThemeExportData = () => {
   return {
     theme: { name: theme.value.name, id: theme.value.id },
     tokens: theme.value.tokens,
+    custom: theme.value.custom,
     exportedAt: new Date().toISOString(),
   };
 };
@@ -149,20 +155,24 @@ const downloadThemeTokens = () => {
   URL.revokeObjectURL(url);
 };
 
-/** Parse JSON string into theme input. Supports export format { theme, tokens } or { id, name, tokens }. */
-function parseThemeFromJson(json: string): { id: string; name: string; tokens: object } {
+/** Parse JSON string into theme input. Supports export format { theme, tokens, custom? } or { id, name, tokens, custom? }. */
+function parseThemeFromJson(json: string): { id: string; name: string; tokens: object; custom?: Record<string, unknown> } {
   const data = JSON.parse(json) as Record<string, unknown>;
   if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
   const tokens = data.tokens as Record<string, unknown> | undefined;
   if (!tokens || typeof tokens !== 'object' || !tokens.colors || !tokens.typography) {
     throw new Error('JSON must contain theme.tokens with colors and typography');
   }
+  const custom =
+    data.custom !== undefined && typeof data.custom === 'object' && data.custom !== null && !Array.isArray(data.custom)
+      ? (data.custom as Record<string, unknown>)
+      : undefined;
   const themeObj = data.theme as { id?: string; name?: string } | undefined;
   if (themeObj && typeof themeObj.id === 'string' && typeof themeObj.name === 'string') {
-    return { id: themeObj.id, name: themeObj.name, tokens };
+    return { id: themeObj.id, name: themeObj.name, tokens, custom };
   }
   if (typeof data.id === 'string' && typeof data.name === 'string') {
-    return { id: data.id, name: data.name, tokens };
+    return { id: data.id, name: data.name, tokens, custom };
   }
   throw new Error('JSON must contain theme.id/theme.name or top-level id/name');
 }
@@ -177,6 +187,21 @@ const showViewJson = ref(false);
 const showImportJson = ref(false);
 const importText = ref('');
 const importError = ref('');
+const customText = ref('');
+const customError = ref('');
+
+watch(
+  () => theme.value?.id,
+  () => {
+    const c = theme.value?.custom;
+    if (c != null && typeof c === 'object' && !Array.isArray(c) && Object.keys(c).length > 0) {
+      customText.value = JSON.stringify(c, null, 2);
+    } else {
+      customText.value = '';
+    }
+    customError.value = '';
+  },
+);
 
 const handleImport = () => {
   importError.value = '';
@@ -203,6 +228,22 @@ const handleImportFile = (e: Event) => {
   };
   reader.readAsText(file);
   target.value = '';
+};
+
+const handleAttachCustom = () => {
+  customError.value = '';
+  if (!theme.value) return;
+  try {
+    const parsed = JSON.parse(customText.value);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      customError.value = 'Root must be a plain object';
+      return;
+    }
+    updateThemeCustom(theme.value.id, parsed as Record<string, unknown>);
+    apply(theme.value.id);
+  } catch {
+    customError.value = 'Invalid JSON';
+  }
 };
 
 const spacingEntries = () =>
@@ -315,7 +356,7 @@ const transitionEntries = () =>
           class="ai-input"
           placeholder="Describe your theme (e.g., 'A warm autumn sunset theme')"
           :disabled="!isConfigured || isGenerating"
-          @keypress.enter="handleGenerate"
+          @keydown.enter.exact="handleGenerate"
         />
         <button
           class="ai-btn"
@@ -324,6 +365,28 @@ const transitionEntries = () =>
         >
           {{ isGenerating ? 'Generating...' : 'Generate' }}
         </button>
+      </div>
+      <div class="ai-custom-schema-toggle">
+        <button
+          type="button"
+          class="ai-custom-schema-toggle-btn"
+          @click="showCustomSchema = !showCustomSchema"
+        >
+          {{ showCustomSchema ? '▲' : '▼' }} Custom structure
+          <span class="ai-custom-schema-optional">(optional)</span>
+        </button>
+      </div>
+      <div v-if="showCustomSchema" class="ai-custom-schema-panel">
+        <p class="ai-custom-schema-hint">
+          Describe custom data to generate alongside the theme — in words or as a JSON skeleton:
+        </p>
+        <textarea
+          v-model="customSchema"
+          class="ai-custom-schema-textarea"
+          rows="3"
+          :disabled="!isConfigured || isGenerating"
+          :placeholder="customSchemaPlaceholder"
+        />
       </div>
       <div v-if="!isConfigured" class="status">
         AI not configured. Add your API key to enable.
@@ -498,6 +561,35 @@ const transitionEntries = () =>
               </div>
             </div>
           </div>
+        </div>
+
+        <div
+          v-if="theme.custom != null && typeof theme.custom === 'object' && !Array.isArray(theme.custom) && Object.keys(theme.custom).length > 0"
+          class="theme-tokens-section custom-data-section"
+        >
+          <h4 class="theme-tokens-section-title">Custom data</h4>
+          <pre class="custom-data-pre">{{ JSON.stringify(theme.custom, null, 2) }}</pre>
+        </div>
+
+        <div class="theme-tokens-section custom-structure-section">
+          <h4 class="theme-tokens-section-title">Custom structure</h4>
+          <p class="custom-structure-hint">Attach a JSON object to the current theme (e.g. {{ '{ "key": "value" }' }}).</p>
+          <textarea
+            v-model="customText"
+            class="custom-structure-textarea"
+            placeholder='{ "key": "value" }'
+            rows="4"
+            @input="customError = ''"
+          />
+          <p v-if="customError" class="custom-structure-error">{{ customError }}</p>
+          <button
+            type="button"
+            class="download-btn custom-structure-attach"
+            :disabled="!customText.trim()"
+            @click="handleAttachCustom"
+          >
+            Attach to current theme
+          </button>
         </div>
       </template>
     </div>

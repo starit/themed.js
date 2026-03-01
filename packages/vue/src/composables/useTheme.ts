@@ -22,6 +22,8 @@ export interface UseThemeReturn {
   has: (themeId: string) => boolean;
   /** Get a theme by ID */
   get: (themeId: string) => Theme | undefined;
+  /** Update a theme's custom data */
+  updateThemeCustom: (themeId: string, custom: Record<string, unknown>) => void;
 }
 
 /**
@@ -82,6 +84,10 @@ export function useTheme(): UseThemeReturn {
     return manager.get(themeId);
   };
 
+  const updateThemeCustom = (themeId: string, custom: Record<string, unknown>) => {
+    manager.updateThemeCustom(themeId, custom);
+  };
+
   return {
     theme,
     themes,
@@ -91,5 +97,6 @@ export function useTheme(): UseThemeReturn {
     unregister,
     has,
     get,
+    updateThemeCustom,
   };
 }

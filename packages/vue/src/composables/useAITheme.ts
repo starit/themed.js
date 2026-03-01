@@ -7,9 +7,9 @@ import { THEMED_INJECTION_KEY } from '../keys';
  */
 export interface UseAIThemeReturn {
   /** Generate a new theme from a text prompt */
-  generate: (prompt: string) => Promise<Theme>;
+  generate: (prompt: string, options?: { customSchema?: string }) => Promise<Theme>;
   /** Adjust the current theme based on instructions */
-  adjust: (instruction: string) => Promise<Theme>;
+  adjust: (instruction: string, options?: { customSchema?: string }) => Promise<Theme>;
   /** Whether the AI is currently generating a theme */
   isGenerating: ComputedRef<boolean>;
   /** Last error from AI generation */
@@ -72,12 +72,12 @@ export function useAITheme(): UseAIThemeReturn {
   const isConfigured = computed(() => injection.isAIConfigured);
   const modelInfo = computed(() => injection.modelInfo);
 
-  const generate = async (prompt: string): Promise<Theme> => {
+  const generate = async (prompt: string, options?: { customSchema?: string }): Promise<Theme> => {
     localIsGenerating.value = true;
     localError.value = null;
 
     try {
-      const theme = await manager.generate(prompt);
+      const theme = await manager.generate(prompt, options);
       return theme;
     } catch (e) {
       const err = e instanceof Error ? e : new Error(String(e));
@@ -88,7 +88,7 @@ export function useAITheme(): UseAIThemeReturn {
     }
   };
 
-  const adjust = async (instruction: string): Promise<Theme> => {
+  const adjust = async (instruction: string, options?: { customSchema?: string }): Promise<Theme> => {
     const activeTheme = manager.getActive();
     if (!activeTheme) {
       throw new Error('No active theme to adjust');
@@ -100,6 +100,7 @@ export function useAITheme(): UseAIThemeReturn {
     try {
       const theme = await manager.generate(instruction, {
         baseTheme: activeTheme,
+        ...options,
       });
       return theme;
     } catch (e) {

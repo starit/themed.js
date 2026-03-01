@@ -96,6 +96,12 @@ export interface GenerateOptions {
   baseTheme?: Theme;
   /** Custom temperature for AI generation */
   temperature?: number;
+  /**
+   * Optional description of custom structured data to generate alongside the theme.
+   * Accepts natural language ("brand guide with name, tone, and use cases")
+   * or a JSON skeleton with placeholder values ({ "brandName": "...", "tone": "..." }).
+   */
+  customSchema?: string;
 }
 
 /**

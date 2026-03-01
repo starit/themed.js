@@ -37,6 +37,8 @@ export interface Theme {
   tokens: ThemeTokens;
   /** Theme metadata */
   meta: ThemeMeta;
+  /** Optional custom structured data (user-defined JSON object) */
+  custom?: Record<string, unknown>;
 }
 
 /**
@@ -48,6 +50,8 @@ export interface ThemeInput {
   description?: string;
   tokens: ThemeTokens;
   source?: ThemeSource;
+  /** Optional custom structured data */
+  custom?: Record<string, unknown>;
 }
 
 /**
@@ -64,6 +68,7 @@ export function createTheme(input: ThemeInput): Theme {
       createdAt: Date.now(),
       source: input.source ?? 'user',
     },
+    custom: input.custom,
   };
 }
 
@@ -81,6 +86,10 @@ export function isValidTheme(theme: unknown): theme is Theme {
   const tokens = t.tokens as Record<string, unknown>;
   if (typeof tokens.colors !== 'object' || tokens.colors === null) return false;
   if (typeof tokens.typography !== 'object' || tokens.typography === null) return false;
+
+  if (t.custom !== undefined && (typeof t.custom !== 'object' || t.custom === null || Array.isArray(t.custom))) {
+    return false;
+  }
 
   return true;
 }

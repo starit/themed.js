@@ -1,7 +1,7 @@
 import type { AIOptions } from '../types/options';
 import type { Theme } from '../types/theme';
-import type { ThemeTokens } from '../types/tokens';
 import type { AIProvider } from './providers/base';
+import type { AIGenerateResult } from './types';
 import { createAIProvider } from './createAIProvider';
 import { PromptEngine } from './PromptEngine';
 
@@ -35,19 +35,19 @@ export class AIOrchestrator {
   /**
    * Generate a new theme from a prompt
    */
-  async generateTheme(prompt: string): Promise<ThemeTokens> {
-    const messages = this.promptEngine.buildGeneratePrompt(prompt);
+  async generateTheme(prompt: string, customSchema?: string): Promise<AIGenerateResult> {
+    const messages = this.promptEngine.buildGeneratePrompt(prompt, customSchema);
     const response = await this.provider.complete(messages);
-    return this.promptEngine.parseResponse(response);
+    return this.promptEngine.parseFullResponse(response);
   }
 
   /**
    * Adjust an existing theme based on instructions
    */
-  async adjustTheme(theme: Theme, instruction: string): Promise<ThemeTokens> {
-    const messages = this.promptEngine.buildAdjustPrompt(theme, instruction);
+  async adjustTheme(theme: Theme, instruction: string, customSchema?: string): Promise<AIGenerateResult> {
+    const messages = this.promptEngine.buildAdjustPrompt(theme, instruction, customSchema);
     const response = await this.provider.complete(messages);
-    return this.promptEngine.parseResponse(response);
+    return this.promptEngine.parseFullResponse(response);
   }
 
   /**
@@ -58,8 +58,8 @@ export class AIOrchestrator {
   ): AsyncIterable<{ partial: string; complete: boolean }> {
     if (!this.provider.stream) {
       // Fall back to non-streaming
-      const tokens = await this.generateTheme(prompt);
-      yield { partial: JSON.stringify(tokens), complete: true };
+      const result = await this.generateTheme(prompt);
+      yield { partial: JSON.stringify(result.tokens), complete: true };
       return;
     }
 

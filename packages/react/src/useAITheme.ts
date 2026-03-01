@@ -7,9 +7,9 @@ import { AIThemeContext } from './context';
  */
 export interface UseAIThemeReturn {
   /** Generate a new theme from a text prompt */
-  generate: (prompt: string) => Promise<Theme>;
+  generate: (prompt: string, options?: { customSchema?: string }) => Promise<Theme>;
   /** Adjust the current theme based on instructions */
-  adjust: (instruction: string) => Promise<Theme>;
+  adjust: (instruction: string, options?: { customSchema?: string }) => Promise<Theme>;
   /** Configure AI at runtime (e.g. when user enters API key) */
   configureAI: (options: import('@themed.js/core').AIOptions) => void;
   /** Whether the AI is currently generating a theme */

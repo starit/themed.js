@@ -7,6 +7,7 @@ import type {
   RadiusTokens,
   ShadowTokens,
 } from '../types/tokens';
+import type { AIGenerateResult } from './types';
 import {
   defaultTypographyTokens,
   defaultSpacingTokens,
@@ -107,59 +108,63 @@ export class PromptEngine {
   }
 
   /**
+   * Extra instruction appended to system prompt when a custom schema is requested.
+   */
+  private static readonly CUSTOM_SCHEMA_SYSTEM_ADDENDUM = `
+
+Additionally, if the user provides a "Custom structure" description, you MUST include a top-level "custom" field in your JSON response containing the generated data. The "custom" field must be a plain JSON object (not an array). If the input looks like a JSON skeleton (starts with "{"), treat it as a structure template and fill in appropriate values that match the theme; otherwise treat it as a natural language description and generate a suitable JSON structure.`;
+
+  /**
    * Build messages for generating a new theme
    */
-  buildGeneratePrompt(userPrompt: string): Message[] {
-    return [
-      {
-        role: 'system',
-        content: this.systemPrompt,
-      },
-      {
-        role: 'user',
-        content: `Generate a theme based on this description: "${userPrompt}"
+  buildGeneratePrompt(userPrompt: string, customSchema?: string): Message[] {
+    const systemContent = customSchema
+      ? this.systemPrompt + PromptEngine.CUSTOM_SCHEMA_SYSTEM_ADDENDUM
+      : this.systemPrompt;
 
-Remember: Respond with ONLY the JSON object, no other text or formatting.`,
-      },
+    const customPart = customSchema
+      ? `\n\nCustom structure: ${customSchema}\n\nRespond with ONLY the JSON, including a top-level "custom" field alongside "colors", "typography", etc.`
+      : '\n\nRemember: Respond with ONLY the JSON object, no other text or formatting.';
+
+    return [
+      { role: 'system', content: systemContent },
+      { role: 'user', content: `Generate a theme based on this description: "${userPrompt}"${customPart}` },
     ];
   }
 
   /**
    * Build messages for adjusting an existing theme
    */
-  buildAdjustPrompt(theme: Theme, instruction: string): Message[] {
+  buildAdjustPrompt(theme: Theme, instruction: string, customSchema?: string): Message[] {
+    const systemContent = customSchema
+      ? this.systemPrompt + PromptEngine.CUSTOM_SCHEMA_SYSTEM_ADDENDUM
+      : this.systemPrompt;
+
+    const customPart = customSchema
+      ? `\n\nCustom structure: ${customSchema}\n\nRespond with ONLY the complete JSON object (including colors, typography, and optionally radius and shadow), plus a top-level "custom" field.`
+      : '\n\nRemember: Respond with ONLY the complete JSON object (including colors, typography, and optionally radius and shadow), no other text or formatting.';
+
     return [
-      {
-        role: 'system',
-        content: this.systemPrompt,
-      },
+      { role: 'system', content: systemContent },
       {
         role: 'user',
-        content: `Here is the current theme:
-
-${JSON.stringify(theme.tokens, null, 2)}
-
-Please modify this theme according to the following instruction: "${instruction}"
-
-Remember: Respond with ONLY the complete JSON object (including colors, typography, and optionally radius and shadow), no other text or formatting.`,
+        content: `Here is the current theme:\n\n${JSON.stringify(theme.tokens, null, 2)}\n\nPlease modify this theme according to the following instruction: "${instruction}"${customPart}`,
       },
     ];
   }
 
   /**
-   * Parse AI response to ThemeTokens
+   * Parse AI response into tokens + optional custom data.
+   * The "custom" top-level field (if present and a plain object) is extracted before token normalisation.
    */
-  parseResponse(response: string): ThemeTokens {
-    // Try to extract JSON from the response
+  parseFullResponse(response: string): AIGenerateResult {
     let jsonStr = response.trim();
 
-    // Remove markdown code blocks if present
     const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (codeBlockMatch) {
       jsonStr = codeBlockMatch[1].trim();
     }
 
-    // Try to find JSON object in the response
     const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       jsonStr = jsonMatch[0];
@@ -172,8 +177,34 @@ Remember: Respond with ONLY the complete JSON object (including colors, typograp
       throw new Error(`Failed to parse AI response as JSON: ${error}`);
     }
 
-    // Validate and normalize the response
-    return this.normalizeTokens(parsed);
+    if (typeof parsed !== 'object' || parsed === null) {
+      throw new Error('Invalid AI response: expected an object');
+    }
+
+    const obj = parsed as Record<string, unknown>;
+
+    // Extract and remove "custom" before passing the rest to normalizeTokens
+    let custom: Record<string, unknown> | undefined;
+    if (
+      obj.custom !== undefined &&
+      typeof obj.custom === 'object' &&
+      obj.custom !== null &&
+      !Array.isArray(obj.custom)
+    ) {
+      custom = obj.custom as Record<string, unknown>;
+    }
+    const { custom: _removed, ...rest } = obj;
+    void _removed;
+
+    const tokens = this.normalizeTokens(rest);
+    return { tokens, ...(custom !== undefined ? { custom } : {}) };
+  }
+
+  /**
+   * Parse AI response to ThemeTokens (backward-compatible, tokens only).
+   */
+  parseResponse(response: string): ThemeTokens {
+    return this.parseFullResponse(response).tokens;
   }
 
   /**

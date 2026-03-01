@@ -124,6 +124,21 @@ export class ThemeManager {
   }
 
   /**
+   * Update a theme's custom data. Does not emit theme:changed; call apply(themeId) after if you need UI to refresh.
+   */
+  updateThemeCustom(themeId: string, custom: Record<string, unknown>): void {
+    const theme = this.themes.get(themeId);
+    if (!theme) {
+      throw new Error(`Theme not found: ${themeId}`);
+    }
+    const updated = { ...theme, custom };
+    this.themes.set(themeId, updated);
+    if (this.activeTheme?.id === themeId) {
+      this.activeTheme = updated;
+    }
+  }
+
+  /**
    * Apply a theme by ID
    */
   async apply(themeId: string): Promise<void> {
@@ -159,15 +174,16 @@ export class ThemeManager {
     const startTime = Date.now();
 
     try {
-      const tokens = options.baseTheme
-        ? await this.aiOrchestrator.adjustTheme(options.baseTheme, prompt)
-        : await this.aiOrchestrator.generateTheme(prompt);
+      const result = options.baseTheme
+        ? await this.aiOrchestrator.adjustTheme(options.baseTheme, prompt, options.customSchema)
+        : await this.aiOrchestrator.generateTheme(prompt, options.customSchema);
 
       const theme: Theme = {
         id: `ai-${Date.now()}`,
         name: prompt.slice(0, 50),
         description: `AI generated theme from: "${prompt}"`,
-        tokens,
+        tokens: result.tokens,
+        custom: result.custom ?? {},
         meta: {
           version: '1.0.0',
           createdAt: Date.now(),

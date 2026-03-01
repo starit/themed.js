@@ -276,6 +276,59 @@ p {
   cursor: not-allowed;
 }
 
+.ai-custom-schema-toggle {
+  margin-top: 0.5rem;
+}
+
+.ai-custom-schema-toggle-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: var(--themed-font-size-sm);
+  color: var(--themed-color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ai-custom-schema-toggle-btn:hover {
+  color: var(--themed-color-text-primary);
+}
+
+.ai-custom-schema-optional {
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.ai-custom-schema-panel {
+  margin-top: 0.5rem;
+}
+
+.ai-custom-schema-hint {
+  font-size: var(--themed-font-size-xs);
+  color: var(--themed-color-text-secondary);
+  margin-bottom: 0.375rem;
+}
+
+.ai-custom-schema-textarea {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: var(--themed-font-size-sm);
+  font-family: monospace;
+  border: 1px solid var(--themed-color-border);
+  border-radius: 0.375rem;
+  background: var(--themed-color-background);
+  color: var(--themed-color-text-primary);
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.ai-custom-schema-textarea:focus {
+  outline: none;
+  border-color: var(--themed-color-primary);
+}
+
 .status {
   margin-top: 0.5rem;
   font-size: var(--themed-font-size-sm);
@@ -609,6 +662,50 @@ p {
 .theme-shadow-label {
   font-size: 0.6rem;
   color: var(--themed-color-text-secondary);
+}
+
+.custom-data-section .custom-data-pre {
+  margin: 0;
+  padding: 0.75rem;
+  font-size: var(--themed-font-size-xs);
+  font-family: monospace;
+  background: var(--themed-color-background);
+  border: 1px solid var(--themed-color-border);
+  border-radius: var(--themed-radius-sm, 0.25rem);
+  overflow: auto;
+  max-height: 200px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.custom-structure-hint {
+  font-size: var(--themed-font-size-xs);
+  color: var(--themed-color-text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.custom-structure-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.5rem;
+  font-size: var(--themed-font-size-sm);
+  font-family: monospace;
+  border: 1px solid var(--themed-color-border);
+  border-radius: 0.375rem;
+  background: var(--themed-color-background);
+  color: var(--themed-color-text-primary);
+  resize: vertical;
+  margin-bottom: 0.5rem;
+}
+
+.custom-structure-error {
+  margin: 0 0 0.5rem;
+  font-size: var(--themed-font-size-sm);
+  color: var(--themed-color-error);
+}
+
+.custom-structure-attach {
+  margin-top: 0.25rem;
 }
 
 /* Style Demo: hierarchy + spacing/radius (see React styles for full block) */

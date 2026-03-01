@@ -103,12 +103,12 @@ export function ThemeProvider({
 
   // AI functions
   const generate = useCallback(
-    async (prompt: string): Promise<Theme> => {
+    async (prompt: string, options?: { customSchema?: string }): Promise<Theme> => {
       setIsGenerating(true);
       setAiError(null);
 
       try {
-        const theme = await manager.generate(prompt);
+        const theme = await manager.generate(prompt, options);
         setAllThemes(manager.getAll());
         return theme;
       } catch (error) {
@@ -123,7 +123,7 @@ export function ThemeProvider({
   );
 
   const adjust = useCallback(
-    async (instruction: string): Promise<Theme> => {
+    async (instruction: string, options?: { customSchema?: string }): Promise<Theme> => {
       const activeTheme = manager.getActive();
       if (!activeTheme) {
         throw new Error('No active theme to adjust');
@@ -135,6 +135,7 @@ export function ThemeProvider({
       try {
         const theme = await manager.generate(instruction, {
           baseTheme: activeTheme,
+          ...options,
         });
         setAllThemes(manager.getAll());
         return theme;

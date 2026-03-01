@@ -21,9 +21,9 @@ export interface ThemeContextValue {
  */
 export interface AIThemeContextValue {
   /** Generate a new theme from prompt */
-  generate: (prompt: string) => Promise<Theme>;
+  generate: (prompt: string, options?: { customSchema?: string }) => Promise<Theme>;
   /** Adjust the current theme */
-  adjust: (instruction: string) => Promise<Theme>;
+  adjust: (instruction: string, options?: { customSchema?: string }) => Promise<Theme>;
   /** Configure AI at runtime (e.g. when user enters API key) */
   configureAI: (options: AIOptions) => void;
   /** Whether AI is currently generating */

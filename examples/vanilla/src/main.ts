@@ -99,6 +99,7 @@ function getThemeExportData() {
   return {
     theme: { name: theme.name, id: theme.id },
     tokens: theme.tokens,
+    custom: theme.custom,
     exportedAt: new Date().toISOString(),
   };
 }
@@ -119,20 +120,24 @@ function downloadThemeTokens() {
   URL.revokeObjectURL(url);
 }
 
-/** Parse JSON string into theme input. Supports export format { theme, tokens } or { id, name, tokens }. */
-function parseThemeFromJson(json: string): { id: string; name: string; tokens: object } {
+/** Parse JSON string into theme input. Supports export format { theme, tokens, custom? } or { id, name, tokens, custom? }. */
+function parseThemeFromJson(json: string): { id: string; name: string; tokens: object; custom?: Record<string, unknown> } {
   const data = JSON.parse(json) as Record<string, unknown>;
   if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
   const tokens = data.tokens as Record<string, unknown> | undefined;
   if (!tokens || typeof tokens !== 'object' || !tokens.colors || !tokens.typography) {
     throw new Error('JSON must contain theme.tokens with colors and typography');
   }
+  const custom =
+    data.custom !== undefined && typeof data.custom === 'object' && data.custom !== null && !Array.isArray(data.custom)
+      ? (data.custom as Record<string, unknown>)
+      : undefined;
   const themeObj = data.theme as { id?: string; name?: string } | undefined;
   if (themeObj && typeof themeObj.id === 'string' && typeof themeObj.name === 'string') {
-    return { id: themeObj.id, name: themeObj.name, tokens };
+    return { id: themeObj.id, name: themeObj.name, tokens, custom };
   }
   if (typeof data.id === 'string' && typeof data.name === 'string') {
-    return { id: data.id, name: data.name, tokens };
+    return { id: data.id, name: data.name, tokens, custom };
   }
   throw new Error('JSON must contain theme.id/theme.name or top-level id/name');
 }
@@ -268,6 +273,8 @@ function renderColorPreview() {
     container.innerHTML = '<p>No theme selected</p>';
     (cardHeader.querySelector('h3') as HTMLElement).textContent = 'Current Theme';
     (actionsEl as HTMLElement).style.display = 'none';
+    const customStructureEl = document.getElementById('custom-structure-section');
+    if (customStructureEl) (customStructureEl as HTMLElement).style.display = 'none';
     return;
   }
 
@@ -348,7 +355,31 @@ function renderColorPreview() {
   (cardHeader.querySelector('h3') as HTMLElement).textContent = `Current Theme: ${theme.name}`;
   (actionsEl as HTMLElement).style.display = '';
 
-  container.innerHTML = [colorsHtml, typographyHtml, row1, row2].filter(Boolean).join('');
+  const customDataHtml =
+    theme.custom != null && typeof theme.custom === 'object' && !Array.isArray(theme.custom) && Object.keys(theme.custom).length > 0
+      ? `
+    <div class="theme-tokens-section custom-data-section">
+      <h4 class="theme-tokens-section-title">Custom data</h4>
+      <pre class="custom-data-pre">${escapeHtml(JSON.stringify(theme.custom, null, 2))}</pre>
+    </div>`
+      : '';
+
+  const customStructureEl = document.getElementById('custom-structure-section');
+  if (customStructureEl) (customStructureEl as HTMLElement).style.display = '';
+
+  const textarea = document.getElementById('custom-structure-textarea') as HTMLTextAreaElement | null;
+  const errorEl = document.getElementById('custom-structure-error') as HTMLElement | null;
+  if (textarea) {
+    const c = theme.custom;
+    if (c != null && typeof c === 'object' && !Array.isArray(c) && Object.keys(c).length > 0) {
+      textarea.value = JSON.stringify(c, null, 2);
+    } else {
+      textarea.value = '';
+    }
+  }
+  if (errorEl) { errorEl.textContent = ''; errorEl.style.display = 'none'; }
+
+  container.innerHTML = [colorsHtml, typographyHtml, row1, row2, customDataHtml].filter(Boolean).join('');
 }
 
 // Format color name for display
@@ -491,6 +522,15 @@ function setupAIGeneration() {
   const input = document.getElementById('ai-prompt') as HTMLInputElement;
   const button = document.getElementById('ai-generate') as HTMLButtonElement;
   const status = document.getElementById('status')!;
+  const toggleBtn = document.getElementById('ai-custom-schema-toggle') as HTMLButtonElement;
+  const schemaPanel = document.getElementById('ai-custom-schema-panel') as HTMLDivElement;
+  const schemaTextarea = document.getElementById('ai-custom-schema') as HTMLTextAreaElement;
+
+  // Toggle custom schema panel
+  toggleBtn.addEventListener('click', () => {
+    const isOpen = schemaPanel.classList.toggle('open');
+    toggleBtn.childNodes[0].textContent = isOpen ? '▲ ' : '▼ ';
+  });
 
   updateAIGenerationUI();
 
@@ -502,17 +542,20 @@ function setupAIGeneration() {
       return;
     }
 
+    const customSchema = schemaTextarea.value.trim();
+
     button.disabled = true;
     button.textContent = 'Generating...';
     status.textContent = 'Generating theme...';
     status.className = '';
 
     try {
-      const theme = await themed.generate(prompt);
+      const theme = await themed.generate(prompt, customSchema ? { customSchema } : undefined);
       status.textContent = `Generated theme: ${theme.name}`;
       status.className = '';
       renderThemeButtons();
       input.value = '';
+      // Preserve customSchema so user can reuse the same structure
     } catch (error) {
       status.textContent = `Error: ${(error as Error).message}`;
       status.className = 'error';
@@ -530,10 +573,33 @@ function setupAIGeneration() {
   });
 }
 
+function handleAttachCustom() {
+  const textarea = document.getElementById('custom-structure-textarea') as HTMLTextAreaElement;
+  const errorEl = document.getElementById('custom-structure-error')!;
+  const theme = themed.getActive();
+  if (!theme) return;
+  errorEl.textContent = '';
+  errorEl.style.display = 'none';
+  try {
+    const parsed = JSON.parse(textarea.value.trim());
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      errorEl.textContent = 'Root must be a plain object';
+      errorEl.style.display = 'block';
+      return;
+    }
+    themed.updateThemeCustom(theme.id, parsed as Record<string, unknown>);
+    themed.apply(theme.id);
+  } catch {
+    errorEl.textContent = 'Invalid JSON';
+    errorEl.style.display = 'block';
+  }
+}
+
 // Setup Current Theme action buttons (after DOM ready; ids set in index.html)
 document.getElementById('view-json')!.addEventListener('click', showViewJsonModal);
 document.getElementById('download-colors')!.addEventListener('click', downloadThemeTokens);
 document.getElementById('import-json')!.addEventListener('click', showImportJsonModal);
+document.getElementById('attach-custom-btn')!.addEventListener('click', handleAttachCustom);
 
 // Start the app
 init();
