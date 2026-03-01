@@ -28,7 +28,7 @@ function AIConfigPanel() {
   const { configureAI, isConfigured, modelInfo } = useAITheme();
   const [apiKey, setApiKey] = useState('');
   const [provider, setProvider] = useState<typeof PROVIDERS[number]['value']>('openai');
-  const [remember, setRemember] = useState(true);
+  const [remember, setRemember] = useState(false);
   const [expanded, setExpanded] = useState(!isConfigured);
 
   // Load saved config on mount
@@ -40,6 +40,7 @@ function AIConfigPanel() {
         if (key) {
           setApiKey(key);
           setProvider(p || 'openai');
+          setRemember(true);
           configureAI({
             provider: p || 'openai',
             apiKey: key,
@@ -70,6 +71,7 @@ function AIConfigPanel() {
     } else {
       localStorage.removeItem(AI_CONFIG_STORAGE_KEY);
     }
+    setApiKey('');
     setExpanded(false);
   };
 
@@ -90,7 +92,10 @@ function AIConfigPanel() {
       {expanded && (
         <div className="ai-config-form">
           <p className="ai-config-hint">
-            Enter your API key to enable AI theme generation. It stays in your browser only.
+            Your API key is stored only on your device and is never sent to our servers or collected. It is used only to call the AI provider you choose.
+          </p>
+          <p className="ai-config-security">
+            We never collect or log your key. For stronger security, uncheck Remember so the key is not saved to disk (session only).
           </p>
           <div className="ai-config-row">
             <select
@@ -105,9 +110,11 @@ function AIConfigPanel() {
               ))}
             </select>
             <input
-              type="password"
-              className="ai-config-input"
+              type="text"
+              autoComplete="off"
+              className="ai-config-input ai-config-key-input"
               placeholder="API Key"
+              spellCheck={false}
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSave()}
@@ -197,8 +204,8 @@ function AIGenerator() {
     try {
       await generate(prompt);
       setPrompt('');
-    } catch (e) {
-      console.error('Failed to generate:', e);
+    } catch {
+      // Error shown via useAITheme().error; do not log to avoid leaking any sensitive data
     }
   };
 

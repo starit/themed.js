@@ -97,6 +97,16 @@ p {
   margin: 0.75rem 0 0.5rem;
 }
 
+.ai-config-security {
+  font-size: var(--themed-font-size-xs);
+  color: var(--themed-color-text-secondary);
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--themed-color-background);
+  border-radius: 0.375rem;
+  border: 1px solid var(--themed-color-border);
+}
+
 .ai-config-row {
   display: flex;
   gap: 0.5rem;
@@ -128,6 +138,11 @@ p {
 .ai-config-input:focus {
   outline: none;
   border-color: var(--themed-color-primary);
+}
+
+/* Mask API key so browser does not offer to save as password; type="text" + this avoids password-manager prompts */
+.ai-config-key-input {
+  -webkit-text-security: disc;
 }
 
 .ai-config-actions {

@@ -18,7 +18,7 @@ const { generate, isGenerating, error, isConfigured, modelInfo, configureAI } = 
 
 const apiKey = ref('');
 const provider = ref<(typeof PROVIDERS)[number]['value']>('openai');
-const remember = ref(true);
+const remember = ref(false);
 const configExpanded = ref(true);
 
 onMounted(() => {
@@ -29,6 +29,7 @@ onMounted(() => {
       if (key) {
         apiKey.value = key;
         provider.value = p || 'openai';
+        remember.value = true;
         const prov = PROVIDERS.find((x) => x.value === (p || 'openai'));
         configureAI({
           provider: p || 'openai',
@@ -67,6 +68,7 @@ const handleSaveConfig = () => {
   } else {
     localStorage.removeItem(AI_CONFIG_STORAGE_KEY);
   }
+  apiKey.value = '';
   configExpanded.value = false;
 };
 
@@ -96,8 +98,8 @@ const handleGenerate = async () => {
   try {
     await generate(prompt.value);
     prompt.value = '';
-  } catch (e) {
-    console.error('Failed to generate:', e);
+  } catch {
+    // Error shown via useAITheme().error; do not log to avoid leaking any sensitive data
   }
 };
 
@@ -162,7 +164,10 @@ const downloadThemeColors = () => {
       </button>
       <div v-show="configExpanded" class="ai-config-form">
         <p class="ai-config-hint">
-          Enter your API key to enable AI theme generation. It stays in your browser only.
+          Your API key is stored only on your device and is never sent to our servers or collected. It is used only to call the AI provider you choose.
+        </p>
+        <p class="ai-config-security">
+          We never collect or log your key. For stronger security, uncheck Remember so the key is not saved to disk (session only).
         </p>
         <div class="ai-config-row">
           <select v-model="provider" class="ai-config-select">
@@ -176,8 +181,10 @@ const downloadThemeColors = () => {
           </select>
           <input
             v-model="apiKey"
-            type="password"
-            class="ai-config-input"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            class="ai-config-input ai-config-key-input"
             placeholder="API Key"
             @keydown.enter="handleSaveConfig"
           />

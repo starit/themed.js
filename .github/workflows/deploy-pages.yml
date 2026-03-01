@@ -1,0 +1,84 @@
+# Deploy Themed.js demos (React, Vue, Vanilla) to GitHub Pages
+# Site: https://<user>.github.io/themed.js/
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build core
+        run: pnpm --filter @themed.js/core run build
+
+      - name: Build React example
+        run: pnpm --filter themed-react-example run build
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/react/
+
+      - name: Build Vue example
+        run: pnpm --filter themed-vue-example run build
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/vue/
+
+      - name: Build Vanilla example
+        run: pnpm --filter themed-vanilla-example run build
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/vanilla/
+
+      - name: Prepare deploy directory
+        run: |
+          mkdir -p deploy/react deploy/vue deploy/vanilla
+          cp -r examples/react/dist/* deploy/react/
+          cp -r examples/vue/dist/* deploy/vue/
+          cp -r examples/vanilla/dist/* deploy/vanilla/
+          cp .github/pages-index.html deploy/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: deploy
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

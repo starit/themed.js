@@ -104,6 +104,16 @@
       margin: 0.75rem 0 0.5rem;
     }
 
+    .ai-config-security {
+      font-size: var(--themed-font-size-xs);
+      color: var(--themed-color-text-secondary);
+      margin: 0 0 0.75rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--themed-color-background);
+      border-radius: 0.375rem;
+      border: 1px solid var(--themed-color-border);
+    }
+
     .ai-config-row {
       display: flex;
       gap: 0.5rem;
@@ -135,6 +145,11 @@
     .ai-config-input:focus {
       outline: none;
       border-color: var(--themed-color-primary);
+    }
+
+    /* Mask API key so browser does not offer to save as password; type="text" + this avoids password-manager prompts */
+    .ai-config-key-input {
+      -webkit-text-security: disc;
     }
 
     .ai-config-actions {
@@ -361,7 +376,10 @@
       </button>
       <div class="ai-config-form" id="ai-config-form" style="display: none">
         <p class="ai-config-hint">
-          Enter your API key to enable AI theme generation. It stays in your browser only.
+          Your API key is stored only on your device and is never sent to our servers or collected. It is used only to call the AI provider you choose.
+        </p>
+        <p class="ai-config-security">
+          We never collect or log your key. For stronger security, uncheck Remember so the key is not saved to disk (session only).
         </p>
         <div class="ai-config-row">
           <select id="ai-config-provider" class="ai-config-select">
@@ -373,15 +391,17 @@
             <option value="deepseek">DeepSeek</option>
           </select>
           <input
-            type="password"
+            type="text"
             id="ai-config-key"
-            class="ai-config-input"
+            class="ai-config-input ai-config-key-input"
             placeholder="API Key"
+            autocomplete="off"
+            spellcheck="false"
           />
         </div>
         <div class="ai-config-actions">
           <label class="ai-config-remember">
-            <input type="checkbox" id="ai-config-remember" checked />
+            <input type="checkbox" id="ai-config-remember" />
             Remember (localStorage)
           </label>
           <div class="ai-config-buttons">

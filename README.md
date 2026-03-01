@@ -266,6 +266,24 @@ interface ThemeTokens {
 }
 ```
 
+## Deploying to GitHub Pages
+
+The repo includes a workflow that builds the React, Vue, and Vanilla examples and deploys them to GitHub Pages.
+
+1. **Enable GitHub Pages**  
+   In the repo: **Settings → Pages → Build and deployment**:  
+   - Source: **GitHub Actions**.
+
+2. **Push to `main`**  
+   The workflow runs on every push to `main` (or trigger it manually via **Actions → Deploy to GitHub Pages → Run workflow**).
+
+3. **Open the site**  
+   After deployment, the site is at:  
+   **https://\<your-username\>.github.io/themed.js/**  
+   - Landing: links to [React](https://starit.github.io/themed.js/react/), [Vue](https://starit.github.io/themed.js/vue/), [Vanilla](https://starit.github.io/themed.js/vanilla/) demos.
+
+API keys are not embedded; users enter their own key in each demo’s UI (safe for public hosting).
+
 ## Development
 
 ```bash
