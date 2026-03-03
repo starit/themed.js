@@ -7,6 +7,7 @@ import { GroqProvider } from './providers/groq';
 import { MoonshotProvider } from './providers/moonshot';
 import { DeepSeekProvider } from './providers/deepseek';
 import { CustomProvider, type CustomProviderConfig } from './providers/custom';
+import { ExtensionProvider } from './providers/extension';
 
 /**
  * Create an AI provider from options.
@@ -14,10 +15,17 @@ import { CustomProvider, type CustomProviderConfig } from './providers/custom';
  * do not depend on concrete provider classes.
  */
 export function createAIProvider(options: AIOptions): AIProvider {
+  // Extension provider: delegates to window.ThemedLLM, no API key needed.
+  if (options.provider === 'extension') {
+    return new ExtensionProvider();
+  }
+
+  // Custom AIProvider instance passed directly (duck-typed).
   if (typeof options.provider === 'object') {
     return options.provider;
   }
 
+  // All remaining providers are API-key-based; options is AIKeyBasedOptions here.
   const config: AIProviderConfig = {
     apiKey: options.apiKey ?? '',
     model: options.model,

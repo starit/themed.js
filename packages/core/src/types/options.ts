@@ -11,14 +11,39 @@ export type AIProviderType =
   | 'groq'
   | 'moonshot'
   | 'deepseek'
-  | 'custom';
+  | 'custom'
+  | 'extension';
 
 /**
- * AI configuration options
+ * Options for the built-in Chrome extension proxy provider.
+ *
+ * No API key, model, or base URL is needed — all LLM credentials are held
+ * inside the "Themed LLM Secure Proxy" Chrome extension. The extension must
+ * be installed and configured before calling `themed.generate()`.
+ *
+ * @example
+ * ```typescript
+ * const themed = createThemed({
+ *   defaultTheme: 'zinc',
+ *   ai: { provider: 'extension' },
+ * });
+ * ```
  */
-export interface AIOptions {
-  /** AI provider type or custom provider instance */
-  provider: AIProviderType | AIProvider;
+export interface AIExtensionOptions {
+  provider: 'extension';
+  /** Request timeout in milliseconds */
+  timeout?: number;
+  /** Maximum retries on failure */
+  maxRetries?: number;
+}
+
+/**
+ * Options for network-based (API key) AI providers:
+ * openai, claude, gemini, groq, moonshot, deepseek, custom, or a custom AIProvider instance.
+ */
+export interface AIKeyBasedOptions {
+  /** AI provider type or a custom AIProvider instance */
+  provider: Exclude<AIProviderType, 'extension'> | AIProvider;
   /** API key for the provider */
   apiKey?: string;
   /** Model to use */
@@ -32,6 +57,12 @@ export interface AIOptions {
   /** Maximum retries on failure */
   maxRetries?: number;
 }
+
+/**
+ * AI configuration options.
+ * Use `AIExtensionOptions` when `provider: 'extension'`; use `AIKeyBasedOptions` for all others.
+ */
+export type AIOptions = AIExtensionOptions | AIKeyBasedOptions;
 
 /**
  * Storage type identifiers

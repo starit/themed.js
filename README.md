@@ -290,6 +290,43 @@ ai: {
   endpoint: 'https://your-api.com/generate',
   apiKey: 'xxx', // optional
 }
+
+// Chrome extension proxy — no API key in the page (see below)
+ai: {
+  provider: 'extension',
+}
+```
+
+### Using the Chrome Extension Proxy
+
+The `extension` provider delegates all LLM calls to the **Themed LLM Secure Proxy** Chrome extension via `window.ThemedLLM`. Your API key never appears in page code — it is stored and used only inside the extension.
+
+**Setup:**
+
+1. Install (or load unpacked) the **Themed LLM Secure Proxy** Chrome extension.
+2. Open the extension's options page and configure your AI provider, model, and API key.
+3. Use `provider: 'extension'` in your app — no `apiKey`, `model`, or `baseURL` needed:
+
+```typescript
+import { createThemed } from '@themed.js/core';
+
+const themed = createThemed({
+  defaultTheme: 'zinc',
+  ai: {
+    provider: 'extension',
+  },
+});
+
+await themed.init();
+const theme = await themed.generate('A warm sunset theme');
+// All LLM traffic goes through the extension — no key in this page.
+```
+
+If the extension is not installed or not active when `generate()` is called, a clear error is thrown:
+
+```
+Themed LLM Proxy extension is not detected.
+Install it or load it unpacked, then refresh the page.
 ```
 
 ## API Reference

@@ -103,6 +103,30 @@ console.log(theme.custom);
 // { "brandName": "...", "tone": "...", ... }
 ```
 
+## Chrome Extension Proxy
+
+The `extension` provider delegates all LLM calls to the **Themed LLM Secure Proxy** Chrome extension (`window.ThemedLLM`). Your API key never appears in page code — it is stored and used only inside the extension.
+
+```typescript
+const themed = createThemed({
+  defaultTheme: 'zinc',
+  ai: {
+    provider: 'extension',
+    // no apiKey, model, or baseURL needed
+  },
+});
+
+await themed.init();
+const theme = await themed.generate('A warm sunset theme');
+```
+
+**Requirements:**
+1. Install (or load unpacked) the **Themed LLM Secure Proxy** Chrome extension.
+2. In the extension's options page, configure your AI provider, model, and API key.
+3. Call `themed.generate(…)` as usual — all LLM traffic goes through the extension.
+
+If the extension is not active when `generate()` is called, a descriptive error is thrown.
+
 ## API
 
 ### `createThemed(options)`
@@ -113,7 +137,7 @@ Creates and returns a configured `ThemeManager` instance. Automatically register
 const themed = createThemed({
   defaultTheme: 'light',       // Theme ID to apply on init
   themes: [...],               // Additional themes to register
-  ai: { provider, apiKey },    // AI configuration
+  ai: { provider, apiKey },    // AI configuration — use provider: 'extension' for Chrome extension proxy
   storage: { type },           // 'localStorage' | 'indexedDB' | 'none'
   css: { prefix },             // CSS variable prefix (default: '--themed')
   debug: false,                // Enable event logging

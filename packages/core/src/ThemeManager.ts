@@ -282,7 +282,8 @@ export class ThemeManager {
 
     const provider =
       typeof ai.provider === 'string' ? ai.provider : ai.provider.name;
-    return { provider, model: ai.model };
+    const model = 'model' in ai ? ai.model : undefined;
+    return { provider, model };
   }
 
   /**

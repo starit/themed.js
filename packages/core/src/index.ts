@@ -26,6 +26,8 @@ export { GroqProvider } from './ai/providers/groq';
 export { MoonshotProvider } from './ai/providers/moonshot';
 export { DeepSeekProvider } from './ai/providers/deepseek';
 export { CustomProvider } from './ai/providers/custom';
+export { ExtensionProvider } from './ai/providers/extension';
+export type { ThemedLLMProxy } from './ai/providers/extension';
 
 // Storage
 export { StorageManager } from './storage/StorageManager';
