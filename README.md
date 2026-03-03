@@ -9,6 +9,7 @@ A powerful, framework-agnostic theme management library with AI-powered theme ge
 
 - **Framework Agnostic** - Works with vanilla JS, React, Vue, or any framework
 - **AI-Powered Theme Generation** - Generate beautiful themes from text descriptions using OpenAI, Claude, or custom AI providers
+- **Custom Structured Data** - Attach arbitrary JSON data to any theme; AI can generate it alongside tokens
 - **CSS Variables** - Non-invasive styling using CSS Custom Properties
 - **Built-in Themes** - 7 beautiful pre-designed themes out of the box
 - **Type-Safe** - Full TypeScript support with comprehensive type definitions
@@ -58,6 +59,12 @@ themed.apply('dark');
 
 // Generate AI theme
 const theme = await themed.generate('A warm autumn sunset theme');
+
+// Generate with custom structured data
+const themed2 = await themed.generate('A corporate blue theme', {
+  customSchema: 'Brand guidelines with name, tone of voice, and target audience',
+});
+// theme.custom → { "brandName": "...", "tone": "...", "audience": "..." }
 ```
 
 ### React
@@ -146,6 +153,79 @@ Themed.js injects CSS variables that you can use in your stylesheets:
 }
 ```
 
+## Custom Structured Data
+
+Every theme can carry an optional `custom` field — an arbitrary JSON object — that travels with the theme through storage, export/import, and AI generation.
+
+### Attach custom data to an existing theme
+
+```typescript
+// Vanilla
+themed.updateThemeCustom('my-theme', {
+  brandName: 'Acme Corp',
+  tone: 'professional',
+  audience: 'enterprise',
+});
+themed.apply('my-theme'); // triggers re-render in reactive frameworks
+```
+
+```tsx
+// React
+const { theme, updateThemeCustom, apply } = useTheme();
+
+updateThemeCustom(theme.id, { brandName: 'Acme', tone: 'friendly' });
+apply(theme.id);
+```
+
+```vue
+<!-- Vue -->
+<script setup>
+const { theme, updateThemeCustom, apply } = useTheme();
+
+function attach(custom) {
+  updateThemeCustom(theme.value.id, custom);
+  apply(theme.value.id);
+}
+</script>
+```
+
+### Create a theme with custom data
+
+```typescript
+import { createTheme } from '@themed.js/core';
+
+const theme = createTheme({
+  id: 'brand',
+  name: 'Brand Theme',
+  tokens: { /* ... */ },
+  custom: {
+    brandName: 'Acme Corp',
+    primaryUsage: 'Marketing site',
+  },
+});
+```
+
+### Generate custom data with AI
+
+Pass a `customSchema` when generating a theme. It can be a natural-language description or a JSON skeleton with placeholder values:
+
+```typescript
+// Natural language
+const theme = await themed.generate('A warm startup theme', {
+  customSchema: 'Brand guidelines with company name, tagline, tone of voice, and target audience',
+});
+
+// JSON skeleton — AI fills in the values to match the theme
+const theme2 = await themed.generate('A dark fintech theme', {
+  customSchema: '{ "brandName": "...", "tone": "...", "audience": "..." }',
+});
+
+console.log(theme.custom);
+// { "brandName": "...", "tone": "...", "audience": "...", ... }
+```
+
+The `custom` field is included in export/import and persisted to storage automatically.
+
 ## Built-in Themes
 
 - **Light** - Clean, modern light theme
@@ -161,11 +241,11 @@ Themed.js injects CSS variables that you can use in your stylesheets:
 Themed.js supports multiple AI providers:
 
 ```typescript
-// OpenAI (default: gpt-5-mini)
+// OpenAI (default: gpt-4o-mini)
 ai: {
   provider: 'openai',
   apiKey: 'sk-xxx',
-  model: 'gpt-5-mini', // optional: gpt-5.2, gpt-5-mini, gpt-4o, gpt-4o-mini
+  model: 'gpt-4o-mini', // optional: gpt-4o, gpt-4-turbo, etc.
 }
 
 // Claude (default: claude-sonnet-4-6)
@@ -186,14 +266,14 @@ ai: {
 ai: {
   provider: 'groq',
   apiKey: 'gsk_xxx', // from console.groq.com
-  model: 'llama-3.3-70b-versatile', // optional: llama3-70b-8192
+  model: 'llama-3.3-70b-versatile',
 }
 
 // Moonshot/Kimi (default: kimi-k2-turbo-preview)
 ai: {
   provider: 'moonshot',
   apiKey: 'xxx', // from platform.moonshot.ai
-  model: 'kimi-k2-turbo-preview', // optional: kimi-k2.5, kimi-k2-0905-preview
+  model: 'kimi-k2-turbo-preview',
   baseURL: 'https://api.moonshot.cn/v1', // optional: use .cn for China
 }
 
@@ -219,20 +299,61 @@ ai: {
 ```typescript
 const themed = createThemed(options);
 
-// Initialize
+// Lifecycle
 await themed.init();
+themed.destroy();
 
 // Theme management
-themed.register(theme);      // Register a theme
-themed.apply('dark');        // Apply a theme
-themed.getActive();          // Get current theme
-themed.getAll();             // Get all themes
+themed.register(theme);               // Register a theme
+themed.registerMany([...themes]);     // Register multiple themes
+themed.unregister(themeId);          // Remove a theme
+themed.apply(themeId);               // Apply a theme by ID
+themed.getActive();                  // Get the currently active Theme
+themed.get(themeId);                 // Get a theme by ID
+themed.getAll();                     // Get all registered themes
+themed.has(themeId);                 // Check if a theme is registered
+
+// Custom structured data
+themed.updateThemeCustom(themeId, custom);  // Set custom data on a theme
+// Note: call apply(themeId) afterwards to trigger reactive updates
 
 // AI generation
-const theme = await themed.generate('Description');
+await themed.generate(prompt, options?);   // Generate a theme from a text prompt
+// options.customSchema  — natural language or JSON skeleton for custom data to co-generate
+// options.autoApply    — auto-apply after generation (default: true)
+// options.autoSave     — auto-save to storage after generation (default: true)
+// options.baseTheme    — adjust an existing theme instead of generating from scratch
 
-// Events (see docs/EVENTS.md for full event contract and payloads)
+// Runtime configuration
+themed.configureAI(aiOptions);       // Configure AI at runtime (e.g. after user enters API key)
+themed.configureStorage(opts);       // Reconfigure storage
+themed.configureCSS(opts);           // Reconfigure CSS variable injection
+
+// Events (see docs/EVENTS.md for the full event contract)
 themed.on('theme:changed', ({ theme }) => {});
+themed.on('theme:generating', ({ prompt }) => {});
+themed.on('theme:generated', ({ theme, prompt, duration }) => {});
+themed.on('theme:error', ({ error, context }) => {});
+themed.off(event, handler);
+```
+
+### Theme Type
+
+```typescript
+interface Theme {
+  id: string;
+  name: string;
+  description?: string;
+  tokens: ThemeTokens;
+  /** Arbitrary JSON data attached to this theme (brand guidelines, metadata, etc.) */
+  custom?: Record<string, unknown>;
+  meta: {
+    version: string;
+    createdAt: number;
+    source: 'builtin' | 'user' | 'ai';
+    aiPrompt?: string;
+  };
+}
 ```
 
 ### Design Tokens
@@ -258,11 +379,36 @@ interface ThemeTokens {
     borderDark: string;
   };
   typography: {
-    fontFamily: { sans, serif, mono };
-    fontSize: { xs, sm, base, lg, xl, 2xl, 3xl };
-    fontWeight: { light, normal, medium, semibold, bold };
-    lineHeight: { tight, normal, relaxed };
+    fontFamily: { sans: string; serif: string; mono: string };
+    fontSize: { xs, sm, base, lg, xl, '2xl', '3xl': string };
+    fontWeight: { light, normal, medium, semibold, bold: number };
+    lineHeight: { tight, normal, relaxed: number };
   };
+  spacing?: Record<string, string>;  // e.g. { sm: '0.5rem', md: '1rem', ... }
+  radius?: Record<string, string>;   // e.g. { sm: '0.25rem', full: '9999px', ... }
+  shadow?: Record<string, string>;   // e.g. { sm: '0 1px 2px ...', md: '...', ... }
+  transition?: Record<string, string>;
+}
+```
+
+### GenerateOptions
+
+```typescript
+interface GenerateOptions {
+  /** Auto-apply the generated theme (default: true) */
+  autoApply?: boolean;
+  /** Auto-save to storage (default: true) */
+  autoSave?: boolean;
+  /** Base theme to adjust instead of generating from scratch */
+  baseTheme?: Theme;
+  /**
+   * Describe custom structured data to generate alongside the theme tokens.
+   * Accepts natural language or a JSON skeleton with placeholder values.
+   *
+   * @example "Brand guidelines with name, tone, and target audience"
+   * @example '{ "brandName": "...", "tone": "...", "audience": "..." }'
+   */
+  customSchema?: string;
 }
 ```
 
@@ -282,7 +428,7 @@ The repo includes a workflow that builds the React, Vue, and Vanilla examples an
    **https://\<your-username\>.github.io/themed.js/**  
    - Landing: links to [React](https://starit.github.io/themed.js/react/), [Vue](https://starit.github.io/themed.js/vue/), [Vanilla](https://starit.github.io/themed.js/vanilla/) demos.
 
-API keys are not embedded; users enter their own key in each demo’s UI (safe for public hosting).
+API keys are not embedded; users enter their own key in each demo's UI (safe for public hosting).
 
 ## Development
 
@@ -294,7 +440,7 @@ pnpm install
 pnpm build
 
 # Run tests
-pnpm test
+pnpm test:run
 
 # Start example apps
 cd examples/vanilla && pnpm dev  # Port 3000
