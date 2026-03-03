@@ -133,7 +133,7 @@ describe('PromptEngine', () => {
         custom: { extra: true },
       };
       const result = engine.parseFullResponse(JSON.stringify(payload));
-      expect((result.tokens as Record<string, unknown>).custom).toBeUndefined();
+      expect((result.tokens as unknown as Record<string, unknown>).custom).toBeUndefined();
     });
 
     it('ignores custom when it is an array (not a plain object)', () => {
@@ -152,7 +152,7 @@ describe('PromptEngine', () => {
       const payload = { ...lightTheme.tokens, custom: { key: 'val' } };
       const tokens = engine.parseResponse(JSON.stringify(payload));
       expect(tokens.colors.primary).toBe(lightTheme.tokens.colors.primary);
-      expect((tokens as Record<string, unknown>).custom).toBeUndefined();
+      expect((tokens as unknown as Record<string, unknown>).custom).toBeUndefined();
     });
   });
 });

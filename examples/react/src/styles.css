@@ -197,6 +197,32 @@ p {
   border-color: var(--themed-color-primary);
 }
 
+.ai-extension-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: var(--themed-font-size-sm);
+  border-bottom: 1px solid var(--themed-color-border);
+}
+
+.ai-extension-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--themed-color-success);
+  flex-shrink: 0;
+}
+
+.ai-extension-status-label {
+  color: var(--themed-color-success);
+  font-weight: var(--themed-font-weight-medium);
+}
+
+.ai-extension-status-detail {
+  color: var(--themed-color-text-secondary);
+}
+
 .ai-section {
   background-color: var(--themed-color-surface);
   border: 1px solid var(--themed-color-border);

@@ -1,4 +1,8 @@
-import { createThemed, createTheme, type ThemeInput } from '@themed.js/core';
+import { createThemed, createTheme, type ThemeInput, type ThemedLLMProxy } from '@themed.js/core';
+
+type ThemedWindow = Window & typeof globalThis & { ThemedLLM?: ThemedLLMProxy };
+const getExtension = () =>
+  typeof window !== 'undefined' ? (window as ThemedWindow).ThemedLLM : undefined;
 
 const AI_CONFIG_STORAGE_KEY = 'themed-demo-ai-config';
 
@@ -14,6 +18,21 @@ const PROVIDERS = [
 // No API key in build - users enter their own key in the demo UI (safe for GitHub Pages)
 const themed = createThemed({ defaultTheme: 'light' });
 
+/** Show the extension status banner with optional provider/model detail. */
+function showExtensionStatus(provider?: string, model?: string) {
+  const statusEl = document.getElementById('ai-extension-status');
+  const detailEl = document.getElementById('ai-extension-status-detail');
+  if (!statusEl) return;
+  statusEl.style.display = '';
+  if (detailEl) {
+    const parts = [
+      provider ? formatProviderName(provider) : null,
+      model,
+    ].filter(Boolean);
+    detailEl.textContent = parts.length > 0 ? ` — ${parts.join(' · ')}` : '';
+  }
+}
+
 // Initialize and render
 async function init() {
   await themed.init();
@@ -27,8 +46,16 @@ async function init() {
     renderColorPreview();
   });
 
-  // Load saved AI config
-  loadAIConfig();
+  // Extension has priority: auto-connect if window.ThemedLLM is present
+  const ext = getExtension();
+  if (ext?.chat) {
+    const info = ext.getInfo?.() ?? {};
+    themed.configureAI({ provider: 'extension', timeout: 60000 });
+    showExtensionStatus(info.provider, info.model);
+  } else {
+    // Fall back to saved localStorage config
+    loadAIConfig();
+  }
 
   // Setup AI config panel and generation
   setupAIConfig();
@@ -397,6 +424,7 @@ function formatProviderName(provider: string): string {
     moonshot: 'Moonshot',
     deepseek: 'DeepSeek',
     custom: 'Custom',
+    extension: 'Extension',
   };
   return names[provider] ?? provider;
 }
@@ -407,6 +435,10 @@ function loadAIConfig() {
     const saved = localStorage.getItem(AI_CONFIG_STORAGE_KEY);
     if (saved) {
       const { apiKey, provider, model } = JSON.parse(saved);
+      if (provider === 'extension') {
+        themed.configureAI({ provider: 'extension', timeout: 60000 });
+        return;
+      }
       if (apiKey) {
         const prov = PROVIDERS.find((p) => p.value === (provider || 'openai'));
         themed.configureAI({
@@ -422,6 +454,20 @@ function loadAIConfig() {
   }
 }
 
+// Update the config form visibility based on selected provider
+function updateConfigFormForProvider(provider: string) {
+  const apiKeyInput = document.getElementById('ai-config-key') as HTMLInputElement;
+  const hintEl = document.getElementById('ai-config-hint') as HTMLElement | null;
+  const securityEl = document.getElementById('ai-config-security') as HTMLElement | null;
+  const extensionInfoEl = document.getElementById('ai-extension-info') as HTMLElement | null;
+
+  const isExtension = provider === 'extension';
+  if (apiKeyInput) apiKeyInput.style.display = isExtension ? 'none' : '';
+  if (hintEl) hintEl.style.display = isExtension ? 'none' : '';
+  if (securityEl) securityEl.style.display = isExtension ? 'none' : '';
+  if (extensionInfoEl) extensionInfoEl.style.display = isExtension ? '' : 'none';
+}
+
 // Setup API key config panel
 function setupAIConfig() {
   const toggle = document.getElementById('ai-config-toggle')!;
@@ -429,39 +475,77 @@ function setupAIConfig() {
   const providerSelect = document.getElementById('ai-config-provider') as HTMLSelectElement;
   const apiKeyInput = document.getElementById('ai-config-key') as HTMLInputElement;
   const rememberCheck = document.getElementById('ai-config-remember') as HTMLInputElement;
-  const saveBtn = document.getElementById('ai-config-save')!;
+  const saveBtn = document.getElementById('ai-config-save') as HTMLButtonElement;
   const clearBtn = document.getElementById('ai-config-clear')!;
 
   let expanded = !themed.getAIOrchestrator();
   form.style.display = expanded ? 'block' : 'none';
 
-  // Load saved values into form (not the key for security, just provider)
-  try {
-    const saved = localStorage.getItem(AI_CONFIG_STORAGE_KEY);
-    if (saved) {
-      const { provider } = JSON.parse(saved);
-      if (provider) providerSelect.value = provider;
-      rememberCheck.checked = true;
+  // Reflect current AI config in the form (extension auto-connect or saved key)
+  const currentCfg = themed.getAIConfig();
+  if (currentCfg?.provider === 'extension') {
+    providerSelect.value = 'extension';
+  } else {
+    try {
+      const saved = localStorage.getItem(AI_CONFIG_STORAGE_KEY);
+      if (saved) {
+        const { provider } = JSON.parse(saved);
+        if (provider) providerSelect.value = provider;
+        rememberCheck.checked = true;
+      }
+    } catch {
+      // Ignore
     }
-  } catch {
-    // Ignore
   }
+
+  // Apply initial form state based on current provider selection
+  updateConfigFormForProvider(providerSelect.value);
+
+  // React to provider changes
+  providerSelect.addEventListener('change', () => {
+    updateConfigFormForProvider(providerSelect.value);
+    const isExtension = providerSelect.value === 'extension';
+    saveBtn.disabled = !isExtension && !apiKeyInput.value.trim();
+  });
+
+  apiKeyInput.addEventListener('input', () => {
+    if (providerSelect.value !== 'extension') {
+      saveBtn.disabled = !apiKeyInput.value.trim();
+    }
+  });
+
+  const getToggleLabel = () => {
+    const cfg = themed.getAIConfig();
+    const label = cfg ? `(${formatProviderName(cfg.provider)})` : '(not set)';
+    return `${expanded ? '▼' : '▶'} AI Config ${label}`;
+  };
 
   toggle.addEventListener('click', () => {
     expanded = !expanded;
     form.style.display = expanded ? 'block' : 'none';
-    toggle.textContent = `${expanded ? '▼' : '▶'} API Key ${
-      themed.getAIOrchestrator() ? `(${themed.getAIConfig()?.provider ?? 'configured'})` : '(not set)'
-    }`;
+    toggle.textContent = getToggleLabel();
   });
 
   saveBtn.addEventListener('click', () => {
+    const provider = providerSelect.value;
+    if (provider === 'extension') {
+      themed.configureAI({ provider: 'extension', timeout: 60000 });
+      if (rememberCheck.checked) {
+        localStorage.setItem(AI_CONFIG_STORAGE_KEY, JSON.stringify({ provider: 'extension' }));
+      } else {
+        localStorage.removeItem(AI_CONFIG_STORAGE_KEY);
+      }
+      expanded = false;
+      form.style.display = 'none';
+      toggle.textContent = `▶ AI Config (Extension)`;
+      updateAIGenerationUI();
+      return;
+    }
     const apiKey = apiKeyInput.value.trim();
     if (!apiKey) return;
-    const provider = providerSelect.value as (typeof PROVIDERS)[number]['value'];
     const prov = PROVIDERS.find((p) => p.value === provider);
     themed.configureAI({
-      provider,
+      provider: provider as (typeof PROVIDERS)[number]['value'],
       apiKey,
       model: prov?.model,
       timeout: 60000,
@@ -477,7 +561,7 @@ function setupAIConfig() {
     expanded = false;
     form.style.display = 'none';
     apiKeyInput.value = '';
-    toggle.textContent = `▶ API Key (${provider})`;
+    toggle.textContent = `▶ AI Config (${formatProviderName(provider)})`;
     updateAIGenerationUI();
   });
 
@@ -487,10 +571,7 @@ function setupAIConfig() {
   });
 
   // Update toggle text
-  const aiConfig = themed.getAIConfig();
-  toggle.textContent = `${expanded ? '▼' : '▶'} API Key ${
-    aiConfig ? `(${aiConfig.provider})` : '(not set)'
-  }`;
+  toggle.textContent = getToggleLabel();
 }
 
 function updateAIGenerationUI() {
@@ -503,9 +584,10 @@ function updateAIGenerationUI() {
   const isConfigured = themed.getAIOrchestrator() !== null;
 
   if (aiConfig) {
-    modelBadge.innerHTML = aiConfig.model
-      ? `${formatProviderName(aiConfig.provider)} <span class="model-name">· ${aiConfig.model}</span>`
-      : formatProviderName(aiConfig.provider);
+    modelBadge.innerHTML =
+      aiConfig.model && aiConfig.provider !== 'extension'
+        ? `${formatProviderName(aiConfig.provider)} <span class="model-name">· ${aiConfig.model}</span>`
+        : formatProviderName(aiConfig.provider);
     modelBadge.style.display = '';
   } else {
     modelBadge.style.display = 'none';
@@ -517,7 +599,7 @@ function updateAIGenerationUI() {
 
   if (!isConfigured) {
     button.disabled = true;
-    status.textContent = 'Enter your API key above to enable AI.';
+    status.textContent = 'Configure AI above (API key or Extension) to enable generation.';
     status.className = '';
   }
 }

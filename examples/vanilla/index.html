@@ -199,6 +199,32 @@
       border-color: var(--themed-color-primary);
     }
 
+    .ai-extension-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      font-size: var(--themed-font-size-sm);
+      border-bottom: 1px solid var(--themed-color-border);
+    }
+
+    .ai-extension-status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: var(--themed-color-success);
+      flex-shrink: 0;
+    }
+
+    .ai-extension-status-label {
+      color: var(--themed-color-success);
+      font-weight: var(--themed-font-weight-medium);
+    }
+
+    .ai-extension-status-detail {
+      color: var(--themed-color-text-secondary);
+    }
+
     .ai-section {
       background-color: var(--themed-color-surface);
       border: 1px solid var(--themed-color-border);
@@ -1061,15 +1087,24 @@
     </div>
 
     <div class="ai-config-section">
+      <div id="ai-extension-status" class="ai-extension-status" style="display: none;">
+        <span class="ai-extension-status-dot"></span>
+        <span class="ai-extension-status-label">Extension connected</span>
+        <span class="ai-extension-status-detail" id="ai-extension-status-detail"></span>
+      </div>
       <button type="button" class="ai-config-toggle" id="ai-config-toggle">
-        ▶ API Key (not set)
+        ▶ AI Config (not set)
       </button>
       <div class="ai-config-form" id="ai-config-form" style="display: none">
-        <p class="ai-config-hint">
+        <p class="ai-config-hint" id="ai-config-hint">
           Your API key is stored only on your device and is never sent to our servers or collected. It is used only to call the AI provider you choose.
         </p>
-        <p class="ai-config-security">
+        <p class="ai-config-security" id="ai-config-security">
           We never collect or log your key. For stronger security, uncheck Remember so the key is not saved to disk (session only).
+        </p>
+        <p class="ai-config-security" id="ai-extension-info" style="display: none;">
+          Uses the <strong>Themed LLM Secure Proxy</strong> Chrome extension — no API key needed
+          in this page. Configure your provider and key inside the extension options.
         </p>
         <div class="ai-config-row">
           <select id="ai-config-provider" class="ai-config-select">
@@ -1079,6 +1114,7 @@
             <option value="groq">Groq</option>
             <option value="moonshot">Moonshot</option>
             <option value="deepseek">DeepSeek</option>
+            <option value="extension">Extension (Chrome)</option>
           </select>
           <input
             type="text"

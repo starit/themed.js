@@ -25,6 +25,20 @@ export interface ThemedLLMProxy {
     messages: Array<{ role: string; content: string }>,
     options?: Record<string, unknown>
   ): AsyncIterable<string>;
+
+  /**
+   * Returns the current configuration of the extension for status display.
+   * Called synchronously on page load so the UI can show connection state
+   * without waiting for a chat request.
+   *
+   * @returns provider name (e.g. "openai"), model (e.g. "gpt-4o-mini"), and
+   *          whether a valid API key is configured in the extension.
+   */
+  getInfo?(): {
+    provider?: string;
+    model?: string;
+    isConfigured?: boolean;
+  };
 }
 
 declare global {

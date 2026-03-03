@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useTheme, useAITheme } from '@themed.js/react';
-import { createTheme, type ThemeInput } from '@themed.js/core';
+import { createTheme, type ThemeInput, type ThemedLLMProxy } from '@themed.js/core';
+
+type ThemedWindow = Window & typeof globalThis & { ThemedLLM?: ThemedLLMProxy };
+const getExtension = () =>
+  typeof window !== 'undefined' ? (window as ThemedWindow).ThemedLLM : undefined;
 
 const AI_CONFIG_STORAGE_KEY = 'themed-demo-ai-config';
 
@@ -11,6 +15,7 @@ const PROVIDERS = [
   { value: 'groq', label: 'Groq', model: 'llama-3.3-70b-versatile' },
   { value: 'moonshot', label: 'Moonshot', model: 'kimi-k2-turbo-preview' },
   { value: 'deepseek', label: 'DeepSeek', model: 'deepseek-chat' },
+  { value: 'extension', label: 'Extension (Chrome)', model: '' },
 ] as const;
 
 function App() {
@@ -29,16 +34,47 @@ function App() {
 function AIConfigPanel() {
   const { configureAI, isConfigured, modelInfo } = useAITheme();
   const [apiKey, setApiKey] = useState('');
-  const [provider, setProvider] = useState<typeof PROVIDERS[number]['value']>('openai');
   const [remember, setRemember] = useState(false);
-  const [expanded, setExpanded] = useState(!isConfigured);
 
-  // Load saved config on mount
+  // Detect extension synchronously so the very first render is correct (no flash).
+  const [extensionInfo] = useState<{
+    connected: true;
+    provider?: string;
+    model?: string;
+    isConfigured?: boolean;
+  } | null>(() => {
+    const ext = getExtension();
+    if (!ext?.chat) return null;
+    const info = ext.getInfo?.() ?? {};
+    return { connected: true, ...info };
+  });
+
+  const [provider, setProvider] = useState<typeof PROVIDERS[number]['value']>(() =>
+    extensionInfo?.connected ? 'extension' : 'openai'
+  );
+
+  const [expanded, setExpanded] = useState(() => {
+    if (extensionInfo?.connected) return false;
+    try { return !localStorage.getItem(AI_CONFIG_STORAGE_KEY); } catch { return !isConfigured; }
+  });
+
+  // Configure AI on mount: extension has priority over saved localStorage config
   useEffect(() => {
+    if (extensionInfo?.connected) {
+      configureAI({ provider: 'extension', timeout: 60000 });
+      return;
+    }
+    // Fall back to saved config
     try {
       const saved = localStorage.getItem(AI_CONFIG_STORAGE_KEY);
       if (saved) {
         const { apiKey: key, provider: p, model } = JSON.parse(saved);
+        if (p === 'extension') {
+          setProvider('extension');
+          setRemember(true);
+          configureAI({ provider: 'extension', timeout: 60000 });
+          return;
+        }
         if (key) {
           setApiKey(key);
           setProvider(p || 'openai');
@@ -57,12 +93,23 @@ function AIConfigPanel() {
   }, []);
 
   const handleSave = () => {
+    if (provider === 'extension') {
+      configureAI({ provider: 'extension', timeout: 60000 });
+      if (remember) {
+        localStorage.setItem(AI_CONFIG_STORAGE_KEY, JSON.stringify({ provider: 'extension' }));
+      } else {
+        localStorage.removeItem(AI_CONFIG_STORAGE_KEY);
+      }
+      setApiKey('');
+      setExpanded(false);
+      return;
+    }
     if (!apiKey.trim()) return;
     const p = PROVIDERS.find((x) => x.value === provider);
     configureAI({
       provider,
       apiKey: apiKey.trim(),
-      model: p?.model,
+      model: p?.model || undefined,
       timeout: 60000,
     });
     if (remember) {
@@ -82,23 +129,53 @@ function AIConfigPanel() {
     window.location.reload();
   };
 
+  const extDetailParts = [
+    extensionInfo?.provider && formatProviderName(extensionInfo.provider),
+    extensionInfo?.model,
+  ].filter(Boolean);
+
   return (
     <div className="ai-config-section">
+      {extensionInfo?.connected && (
+        <div className="ai-extension-status">
+          <span className="ai-extension-status-dot" />
+          <span className="ai-extension-status-label">Extension connected</span>
+          {extDetailParts.length > 0 && (
+            <span className="ai-extension-status-detail">
+              {' — '}{extDetailParts.join(' · ')}
+            </span>
+          )}
+        </div>
+      )}
       <button
         type="button"
         className="ai-config-toggle"
         onClick={() => setExpanded(!expanded)}
       >
-        {expanded ? '▼' : '▶'} API Key {isConfigured ? `(${modelInfo?.provider ?? 'configured'})` : '(not set)'}
+        {expanded ? '▼' : '▶'} AI Config{' '}
+        {isConfigured
+          ? `(${formatProviderName(modelInfo?.provider ?? 'configured')})`
+          : '(not set)'}
       </button>
       {expanded && (
         <div className="ai-config-form">
-          <p className="ai-config-hint">
-            Your API key is stored only on your device and is never sent to our servers or collected. It is used only to call the AI provider you choose.
-          </p>
-          <p className="ai-config-security">
-            We never collect or log your key. For stronger security, uncheck Remember so the key is not saved to disk (session only).
-          </p>
+          {provider === 'extension' ? (
+            <p className="ai-config-security">
+              Uses the <strong>Themed LLM Secure Proxy</strong> Chrome extension — no API key
+              needed in this page. Configure your provider and key inside the extension options.
+            </p>
+          ) : (
+            <>
+              <p className="ai-config-hint">
+                Your API key is stored only on your device and is never sent to our servers or
+                collected. It is used only to call the AI provider you choose.
+              </p>
+              <p className="ai-config-security">
+                We never collect or log your key. For stronger security, uncheck Remember so the
+                key is not saved to disk (session only).
+              </p>
+            </>
+          )}
           <div className="ai-config-row">
             <select
               className="ai-config-select"
@@ -111,16 +188,18 @@ function AIConfigPanel() {
                 </option>
               ))}
             </select>
-            <input
-              type="text"
-              autoComplete="off"
-              className="ai-config-input ai-config-key-input"
-              placeholder="API Key"
-              spellCheck={false}
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-            />
+            {provider !== 'extension' && (
+              <input
+                type="text"
+                autoComplete="off"
+                className="ai-config-input ai-config-key-input"
+                placeholder="API Key"
+                spellCheck={false}
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+              />
+            )}
           </div>
           <div className="ai-config-actions">
             <label className="ai-config-remember">
@@ -141,7 +220,7 @@ function AIConfigPanel() {
                 type="button"
                 className="ai-config-btn"
                 onClick={handleSave}
-                disabled={!apiKey.trim()}
+                disabled={provider !== 'extension' && !apiKey.trim()}
               >
                 Save
               </button>
@@ -192,6 +271,7 @@ function formatProviderName(provider: string): string {
     moonshot: 'Moonshot',
     deepseek: 'DeepSeek',
     custom: 'Custom',
+    extension: 'Extension',
   };
   return names[provider] ?? provider;
 }

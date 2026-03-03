@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue';
 import { useTheme, useAITheme } from '@themed.js/vue';
-import { createTheme } from '@themed.js/core';
+import { createTheme, type ThemedLLMProxy } from '@themed.js/core';
+
+type ThemedWindow = Window & typeof globalThis & { ThemedLLM?: ThemedLLMProxy };
+const getExtension = () =>
+  typeof window !== 'undefined' ? (window as ThemedWindow).ThemedLLM : undefined;
 
 const AI_CONFIG_STORAGE_KEY = 'themed-demo-ai-config';
 
@@ -12,21 +16,50 @@ const PROVIDERS = [
   { value: 'groq', label: 'Groq', model: 'llama-3.3-70b-versatile' },
   { value: 'moonshot', label: 'Moonshot', model: 'kimi-k2-turbo-preview' },
   { value: 'deepseek', label: 'DeepSeek', model: 'deepseek-chat' },
+  { value: 'extension', label: 'Extension (Chrome)', model: '' },
 ] as const;
 
 const { theme, themes, apply, register, updateThemeCustom } = useTheme();
 const { generate, isGenerating, error, isConfigured, modelInfo, configureAI } = useAITheme();
 
+// Detect extension synchronously so initial render is correct (no flash)
+interface ExtensionInfo { connected: true; provider?: string; model?: string; isConfigured?: boolean }
+const _ext = getExtension();
+const extensionInfo = ref<ExtensionInfo | null>(
+  _ext?.chat ? { connected: true, ...(_ext.getInfo?.() ?? {}) } : null
+);
+
 const apiKey = ref('');
-const provider = ref<(typeof PROVIDERS)[number]['value']>('openai');
+const provider = ref<(typeof PROVIDERS)[number]['value']>(
+  extensionInfo.value?.connected ? 'extension' : 'openai'
+);
 const remember = ref(false);
-const configExpanded = ref(true);
+
+// Start collapsed if extension is present or a saved config exists
+function initExpanded(): boolean {
+  if (extensionInfo.value?.connected) return false;
+  try { return !localStorage.getItem(AI_CONFIG_STORAGE_KEY); } catch { return true; }
+}
+const configExpanded = ref(initExpanded());
 
 onMounted(() => {
+  // Extension has priority
+  if (extensionInfo.value?.connected) {
+    configureAI({ provider: 'extension', timeout: 60000 });
+    return;
+  }
+  // Fall back to saved config
   try {
     const saved = localStorage.getItem(AI_CONFIG_STORAGE_KEY);
     if (saved) {
       const { apiKey: key, provider: p, model } = JSON.parse(saved);
+      if (p === 'extension') {
+        provider.value = 'extension';
+        remember.value = true;
+        configureAI({ provider: 'extension', timeout: 60000 });
+        configExpanded.value = false;
+        return;
+      }
       if (key) {
         apiKey.value = key;
         provider.value = p || 'openai';
@@ -49,12 +82,23 @@ onMounted(() => {
 });
 
 const handleSaveConfig = () => {
+  if (provider.value === 'extension') {
+    configureAI({ provider: 'extension', timeout: 60000 });
+    if (remember.value) {
+      localStorage.setItem(AI_CONFIG_STORAGE_KEY, JSON.stringify({ provider: 'extension' }));
+    } else {
+      localStorage.removeItem(AI_CONFIG_STORAGE_KEY);
+    }
+    apiKey.value = '';
+    configExpanded.value = false;
+    return;
+  }
   if (!apiKey.value.trim()) return;
   const prov = PROVIDERS.find((x) => x.value === provider.value);
   configureAI({
     provider: provider.value,
     apiKey: apiKey.value.trim(),
-    model: prov?.model,
+    model: prov?.model || undefined,
     timeout: 60000,
   });
   if (remember.value) {
@@ -87,6 +131,7 @@ const formatProviderName = (provider: string): string => {
     moonshot: 'Moonshot',
     deepseek: 'DeepSeek',
     custom: 'Custom',
+    extension: 'Extension',
   };
   return names[provider] ?? provider;
 };
@@ -270,21 +315,44 @@ const transitionEntries = computed(() =>
 
     <!-- API Key Config -->
     <div class="ai-config-section">
+      <div v-if="extensionInfo?.connected" class="ai-extension-status">
+        <span class="ai-extension-status-dot"></span>
+        <span class="ai-extension-status-label">Extension connected</span>
+        <span
+          v-if="extensionInfo.provider || extensionInfo.model"
+          class="ai-extension-status-detail"
+        >
+          {{
+            ' — ' + [
+              extensionInfo.provider ? formatProviderName(extensionInfo.provider) : null,
+              extensionInfo.model,
+            ].filter(Boolean).join(' · ')
+          }}
+        </span>
+      </div>
       <button
         type="button"
         class="ai-config-toggle"
         @click="configExpanded = !configExpanded"
       >
-        {{ configExpanded ? '▼' : '▶' }} API Key
-        {{ isConfigured ? `(${modelInfo?.provider ?? 'configured'})` : '(not set)' }}
+        {{ configExpanded ? '▼' : '▶' }} AI Config
+        {{ isConfigured ? `(${formatProviderName(modelInfo?.provider ?? 'configured')})` : '(not set)' }}
       </button>
       <div v-show="configExpanded" class="ai-config-form">
-        <p class="ai-config-hint">
-          Your API key is stored only on your device and is never sent to our servers or collected. It is used only to call the AI provider you choose.
-        </p>
-        <p class="ai-config-security">
-          We never collect or log your key. For stronger security, uncheck Remember so the key is not saved to disk (session only).
-        </p>
+        <template v-if="provider === 'extension'">
+          <p class="ai-config-security">
+            Uses the <strong>Themed LLM Secure Proxy</strong> Chrome extension — no API key
+            needed in this page. Configure your provider and key inside the extension options.
+          </p>
+        </template>
+        <template v-else>
+          <p class="ai-config-hint">
+            Your API key is stored only on your device and is never sent to our servers or collected. It is used only to call the AI provider you choose.
+          </p>
+          <p class="ai-config-security">
+            We never collect or log your key. For stronger security, uncheck Remember so the key is not saved to disk (session only).
+          </p>
+        </template>
         <div class="ai-config-row">
           <select v-model="provider" class="ai-config-select">
             <option
@@ -296,6 +364,7 @@ const transitionEntries = computed(() =>
             </option>
           </select>
           <input
+            v-if="provider !== 'extension'"
             v-model="apiKey"
             type="text"
             autocomplete="off"
@@ -322,7 +391,7 @@ const transitionEntries = computed(() =>
             <button
               type="button"
               class="ai-config-btn"
-              :disabled="!apiKey.trim()"
+              :disabled="provider !== 'extension' && !apiKey.trim()"
               @click="handleSaveConfig"
             >
               Save
