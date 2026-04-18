@@ -1,0 +1,13 @@
+{
+  "version": "1",
+  "skills": [
+    {
+      "id": "integrate-themed",
+      "name": "Integrate themed.js",
+      "description": "Guides an AI agent through integrating themed.js into any project — vanilla, React, or Vue.",
+      "version": "1.1.0",
+      "path": "./integrate-themed/manifest.json",
+      "tags": ["theming", "design-tokens", "css-variables", "ai", "react", "vue", "typescript"]
+    }
+  ]
+}

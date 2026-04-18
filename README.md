@@ -497,6 +497,20 @@ cd examples/vue && pnpm dev     # Port 3002
 
 **Note:** Scoped packages (`@themed.js/*`) are public via `publishConfig.access`. Ensure you are logged in to npm (`npm login`) and have access to the `themed.js` scope (create the org at npmjs.com if needed).
 
+## AI Agent Skills
+
+themed.js ships a ready-to-use skill for AI agent frameworks that support the skill protocol (Claude Code, OpenClaw, etc.).
+
+| Skill | Description |
+|-------|-------------|
+| `integrate-themed` | Guides an agent through installing and integrating themed.js into any project |
+
+**Skills directory:** [`skills/`](./skills/)
+
+Each skill has a `manifest.json` (id, version, tags, compatible agents) and a `skill.md` (full instructions). Agents can discover all available skills via [`skills/index.json`](./skills/index.json).
+
+**Claude Code** — invoke with `/integrate-themed` inside any project that lists this repo as a dependency.
+
 ## License
 
 MIT

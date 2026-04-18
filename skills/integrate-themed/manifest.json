@@ -1,0 +1,28 @@
+{
+  "id": "integrate-themed",
+  "name": "Integrate themed.js",
+  "version": "1.1.0",
+  "changelog": "./CHANGELOG.md",
+  "themed_js_version": ">=0.1.1",
+  "description": "Guides an AI agent through integrating themed.js — a framework-agnostic theme management library with AI-powered generation — into any project.",
+  "author": "themed.js",
+  "license": "MIT",
+  "skill": "./skill.md",
+  "tags": ["theming", "design-tokens", "css-variables", "ai", "react", "vue", "typescript"],
+  "category": "frontend",
+  "frameworks": ["vanilla", "react", "vue"],
+  "packages": {
+    "core": "@themed.js/core",
+    "react": "@themed.js/react",
+    "vue": "@themed.js/vue"
+  },
+  "compatibleAgents": ["claude-code", "openclaw", "any"],
+  "invocation": {
+    "claudeCode": "/integrate-themed",
+    "description": "Invoke this skill when a user asks to add theming, set up themed.js, or integrate theme switching / AI theme generation into their project."
+  },
+  "links": {
+    "npm": "https://www.npmjs.com/package/@themed.js/core",
+    "github": "https://github.com/starit/themed.js"
+  }
+}
