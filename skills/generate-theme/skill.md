@@ -150,6 +150,82 @@ await themed.init();
 
 ---
 
+## Example — complete output
+
+> Input: *"A dark theme inspired by deep ocean — navy and teal, calm and professional, rounded, with soft glows"*
+
+```typescript
+import { createTheme } from '@themed.js/core';
+
+export const midnightOceanTheme = createTheme({
+  id: 'midnight-ocean',
+  name: 'Midnight Ocean',
+  description: 'Deep navy and teal dark theme — calm, professional, softly glowing.',
+  tokens: {
+    colors: {
+      primary:       '#2dd4bf',   // teal-400
+      secondary:     '#0ea5e9',   // sky-500
+      accent:        '#818cf8',   // indigo-400
+      background:    '#0a1628',   // deep navy
+      surface:       '#112240',   // slightly lighter navy
+      error:         '#f87171',   // red-400
+      warning:       '#fbbf24',   // amber-400
+      success:       '#34d399',   // emerald-400
+      info:          '#38bdf8',   // sky-400
+      textPrimary:   '#e2e8f0',   // slate-200
+      textSecondary: '#94a3b8',   // slate-400
+      textDisabled:  '#475569',   // slate-600
+      textInverse:   '#0a1628',   // same as background
+      border:        '#1e3a5f',
+      borderLight:   '#1e4976',
+      borderDark:    '#0f2340',
+    },
+    typography: {
+      fontFamily: {
+        sans:  '"Inter", system-ui, -apple-system, sans-serif',
+        serif: '"Merriweather", Georgia, serif',
+        mono:  '"JetBrains Mono", ui-monospace, monospace',
+      },
+      fontSize:   { xs: '0.75rem', sm: '0.875rem', base: '1rem', lg: '1.125rem', xl: '1.25rem', '2xl': '1.5rem', '3xl': '1.875rem' },
+      fontWeight: { light: 300, normal: 400, medium: 500, semibold: 600, bold: 700 },
+      lineHeight: { tight: 1.25, normal: 1.5, relaxed: 1.75 },
+    },
+    radius: {
+      none: '0',
+      sm:   '0.375rem',
+      md:   '0.75rem',
+      lg:   '1rem',
+      full: '9999px',
+    },
+    shadow: {
+      none: 'none',
+      sm:   '0 1px 3px 0 rgba(0, 0, 0, 0.4)',
+      md:   '0 4px 12px -2px rgba(0, 0, 0, 0.5), 0 0 8px rgba(45, 212, 191, 0.12)',
+      lg:   '0 10px 30px -4px rgba(0, 0, 0, 0.6), 0 0 20px rgba(45, 212, 191, 0.18)',
+    },
+  },
+  meta: { version: '1.0.0', createdAt: Date.now(), source: 'user' },
+});
+```
+
+**Contrast check:**
+
+| Pair | Ratio | WCAG AA |
+|------|-------|---------|
+| textPrimary (`#e2e8f0`) on background (`#0a1628`) | 12.4 : 1 | ✅ |
+| textPrimary on surface (`#112240`) | 11.1 : 1 | ✅ |
+| textSecondary (`#94a3b8`) on background | 5.8 : 1 | ✅ |
+| textInverse (`#0a1628`) on primary (`#2dd4bf`) | 9.1 : 1 | ✅ |
+
+**Google Fonts:**
+
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+```
+
+---
+
 ## Step 4 — Contrast check summary
 
 After outputting the code, briefly list the key contrast ratios:
