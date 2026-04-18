@@ -1,0 +1,19 @@
+{
+  "id": "generate-theme",
+  "name": "Generate themed.js Theme",
+  "description": "Generates a complete themed.js Theme object from a natural language description — no running app needed. Outputs valid TypeScript ready to paste.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": "themed.js",
+  "github": "https://github.com/starit/themed.js",
+  "themed_js_version": ">=0.1.1",
+  "tags": ["theming", "design-tokens", "color-theory", "code-generation", "ai", "typescript"],
+  "entry": "./skill.md",
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2026-04-19",
+      "notes": "Initial release — generates complete Theme objects with color theory guidance, contrast checks, and Google Fonts suggestions."
+    }
+  ]
+}

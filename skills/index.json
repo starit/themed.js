@@ -9,5 +9,14 @@
       "path": "./integrate-themed/manifest.json",
       "tags": ["theming", "design-tokens", "css-variables", "ai", "react", "vue", "typescript"]
     }
+    ,
+    {
+      "id": "generate-theme",
+      "name": "Generate themed.js Theme",
+      "description": "Generates a complete themed.js Theme object from a natural language description — no running app needed. Outputs valid TypeScript ready to paste.",
+      "version": "1.0.0",
+      "path": "./generate-theme/manifest.json",
+      "tags": ["theming", "design-tokens", "color-theory", "code-generation", "ai", "typescript"]
+    }
   ]
 }
