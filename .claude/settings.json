@@ -1,5 +1,11 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(pnpm test:run)",
+      "Bash(node -e ' *)",
+      "Bash(pnpm --filter @themed.js/core build)",
+      "Bash(gh pr *)"
+    ],
     "additionalDirectories": [
       "/Users/starit/src/themed.js/.claude"
     ]

@@ -1,6 +1,7 @@
 // @themed.js/react - React bindings
 
 export { ThemeProvider } from './ThemeProvider';
+export { ThemeScript } from './ThemeScript';
 export { useTheme } from './useTheme';
 export { useAITheme } from './useAITheme';
 export { ThemeContext } from './context';

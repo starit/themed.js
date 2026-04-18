@@ -43,3 +43,6 @@ export { builtinThemes, lightTheme, darkTheme } from './themes';
 
 // Factory function for easy initialization
 export { createThemed } from './createThemed';
+
+// SSR utilities
+export { getSSRStyles } from './ssr';

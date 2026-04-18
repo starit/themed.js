@@ -211,9 +211,13 @@ The `Message` type is `{ role: 'system' | 'user' | 'assistant'; content: string 
 Themes expose tokens as CSS variables automatically after `apply()`:
 
 ```
-colors.primary             → --themed-colors-primary
-colors.background          → --themed-colors-background
-typography.fontFamily.sans → --themed-typography-fontFamily-sans
+colors.primary             → --themed-color-primary
+colors.textPrimary         → --themed-color-text-primary    (camelCase → kebab)
+colors.borderLight         → --themed-color-border-light
+typography.fontFamily.sans → --themed-font-family-sans      ("typography" is dropped)
+typography.fontSize.base   → --themed-font-size-base
+typography.fontWeight.bold → --themed-font-weight-bold
+typography.lineHeight.normal → --themed-line-height-normal
 spacing.md                 → --themed-spacing-md
 radius.lg                  → --themed-radius-lg
 shadow.sm                  → --themed-shadow-sm
@@ -224,51 +228,71 @@ Use them in CSS:
 
 ```css
 .button {
-  background: var(--themed-colors-primary);
-  color: var(--themed-colors-textInverse);
+  background: var(--themed-color-primary);
+  color: var(--themed-color-text-inverse);
   border-radius: var(--themed-radius-md);
   padding: var(--themed-spacing-sm) var(--themed-spacing-lg);
   box-shadow: var(--themed-shadow-sm);
   transition: background var(--themed-transition-fast);
-  font-family: var(--themed-typography-fontFamily-sans);
+  font-family: var(--themed-font-family-sans);
+  font-size: var(--themed-font-size-base);
 }
 ```
 
-Full `ColorTokens` keys: `primary`, `secondary`, `accent`, `background`, `surface`, `error`, `warning`, `success`, `info`, `textPrimary`, `textSecondary`, `textDisabled`, `textInverse`, `border`, `borderLight`, `borderDark`
+Full `ColorTokens` keys and their CSS variables:
+
+| Token key | CSS variable |
+|-----------|-------------|
+| `primary` | `--themed-color-primary` |
+| `secondary` | `--themed-color-secondary` |
+| `accent` | `--themed-color-accent` |
+| `background` | `--themed-color-background` |
+| `surface` | `--themed-color-surface` |
+| `error` | `--themed-color-error` |
+| `warning` | `--themed-color-warning` |
+| `success` | `--themed-color-success` |
+| `info` | `--themed-color-info` |
+| `textPrimary` | `--themed-color-text-primary` |
+| `textSecondary` | `--themed-color-text-secondary` |
+| `textDisabled` | `--themed-color-text-disabled` |
+| `textInverse` | `--themed-color-text-inverse` |
+| `border` | `--themed-color-border` |
+| `borderLight` | `--themed-color-border-light` |
+| `borderDark` | `--themed-color-border-dark` |
 
 ---
 
 ## React integration
 
 ```tsx
-import { ThemedProvider, useThemed, useThemeList } from '@themed.js/react';
+import { ThemeProvider, useTheme, useAITheme } from '@themed.js/react';
 
 function App() {
   return (
-    <ThemedProvider
+    <ThemeProvider
       themes={builtinThemes}
       defaultTheme="light"
       ai={{ provider: 'openai', apiKey: import.meta.env.VITE_OPENAI_KEY }}
     >
       <MyApp />
-    </ThemedProvider>
+    </ThemeProvider>
   );
 }
 
 function ThemeSwitcher() {
-  const { themed, activeTheme, isGenerating } = useThemed();
-  const themes = useThemeList();
+  const { theme, themes, apply } = useTheme();
+  const { generate, isGenerating } = useAITheme();
 
   return (
     <>
       {themes.map(t => (
-        <button key={t.id} onClick={() => themed.apply(t.id)}>
+        <button key={t.id} onClick={() => apply(t.id)}>
           {t.name}
         </button>
       ))}
       <button
         disabled={isGenerating}
-        onClick={() => themed.generate('Cyberpunk neon city')}
+        onClick={() => generate('Cyberpunk neon city')}
       >
         {isGenerating ? 'Generating…' : 'Generate with AI'}
       </button>
@@ -284,10 +308,10 @@ function ThemeSwitcher() {
 ```typescript
 // main.ts
 import { createApp } from 'vue';
-import { ThemedPlugin } from '@themed.js/vue';
+import { themedPlugin } from '@themed.js/vue';
 
 const app = createApp(App);
-app.use(ThemedPlugin, {
+app.use(themedPlugin, {
   themes: builtinThemes,
   defaultTheme: 'light',
   ai: { provider: 'claude', apiKey: import.meta.env.VITE_CLAUDE_KEY },
@@ -297,17 +321,17 @@ app.mount('#app');
 
 ```vue
 <script setup lang="ts">
-import { useThemed, useThemeList } from '@themed.js/vue';
+import { useTheme, useAITheme } from '@themed.js/vue';
 
-const { themed, activeTheme, isGenerating } = useThemed();
-const themes = useThemeList();
+const { themes, apply } = useTheme();
+const { generate, isGenerating } = useAITheme();
 </script>
 
 <template>
-  <button v-for="t in themes" :key="t.id" @click="themed.apply(t.id)">
+  <button v-for="t in themes" :key="t.id" @click="apply(t.id)">
     {{ t.name }}
   </button>
-  <button :disabled="isGenerating" @click="themed.generate('Forest morning mist')">
+  <button :disabled="isGenerating" @click="generate('Forest morning mist')">
     {{ isGenerating ? 'Generating…' : 'Generate with AI' }}
   </button>
 </template>
@@ -358,16 +382,99 @@ await themed.apply('my-brand');
 
 ---
 
+## Server-side rendering (SSR)
+
+CSS injection uses the DOM and is a no-op on the server. To avoid a flash of unstyled content (FOUC), inject the initial CSS into the server-rendered HTML before the client hydrates.
+
+### React — `ThemeScript` (Next.js App Router / Pages Router)
+
+```tsx
+// app/layout.tsx  (App Router)
+import { ThemeScript } from '@themed.js/react';
+import { ThemeProvider } from '@themed.js/react';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <head>
+        <ThemeScript defaultTheme="light" />
+      </head>
+      <body>
+        <ThemeProvider defaultTheme="light">{children}</ThemeProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+```tsx
+// pages/_document.tsx  (Pages Router)
+import { Html, Head, Main, NextScript } from 'next/document';
+import { ThemeScript } from '@themed.js/react';
+
+export default function Document() {
+  return (
+    <Html>
+      <Head><ThemeScript defaultTheme="light" /></Head>
+      <body><Main /><NextScript /></body>
+    </Html>
+  );
+}
+```
+
+Pass custom themes and the same `css` options as your `ThemeProvider`:
+
+```tsx
+<ThemeScript defaultTheme="light" themes={[...builtinThemes, myTheme]} css={{ prefix: '--app' }} />
+```
+
+### Vue / Nuxt — `getSSRStyles`
+
+```typescript
+// plugins/themed.server.ts
+import { getSSRStyles, builtinThemes } from '@themed.js/vue';
+
+export default defineNuxtPlugin(() => {
+  useHead({
+    style: [{
+      id: 'themed-js-styles',
+      innerHTML: getSSRStyles('light', builtinThemes),
+    }],
+  });
+});
+```
+
+### Vanilla SSR (Express, Fastify, etc.)
+
+```typescript
+import { getSSRStyles, builtinThemes } from '@themed.js/core';
+
+app.get('/', (req, res) => {
+  const css = getSSRStyles('light', builtinThemes);
+  res.send(`
+    <html>
+      <head><style id="themed-js-styles">${css}</style></head>
+      <body>...</body>
+    </html>
+  `);
+});
+```
+
+The `id="themed-js-styles"` attribute is required — the client-side `CSSInjector` looks up this element by ID on hydration and updates it in place, so there is no duplicate tag and no FOUC.
+
+---
+
 ## Integration checklist
 
 1. **Install** the correct package(s) for the target framework
-2. **Initialize** with `createThemed()` (or `ThemedProvider` / `ThemedPlugin` for React/Vue)
+2. **Initialize** with `createThemed()` (or `ThemeProvider` / `themedPlugin` for React/Vue)
 3. **Register themes** — include `builtinThemes` and/or custom themes
 4. **Call `themed.init()`** to apply the default/saved theme
 5. **Wire up CSS variables** — replace hardcoded color/spacing values with `var(--themed-*)` tokens
-6. **Add a theme switcher** UI using `getAll()` / `useThemeList()`
-7. **Optional:** configure AI and add a generation UI
-8. **Optional:** subscribe to events for loading states and analytics
+6. **Add a theme switcher** UI using `getAll()` / `useTheme()`
+7. **SSR (optional):** add `ThemeScript` / `getSSRStyles` to prevent FOUC
+8. **Optional:** configure AI and add a generation UI
+9. **Optional:** subscribe to events for loading states and analytics
 
 ---
 
@@ -375,5 +482,6 @@ await themed.apply('my-brand');
 
 - **Forget to call `init()`** — no theme is applied until you do
 - **AI not configured** — calling `generate()` throws if no `ai` option was provided; check with `getAIConfig()`
-- **Custom prefix** — if you change `css.prefix`, update all `var(--themed-*)` references in your CSS
-- **SSR** — CSS injection uses `document`; guard with `typeof window !== 'undefined'` or defer `init()` to client side
+- **Custom prefix** — if you change `css.prefix`, update all `var(--themed-*)` references in your CSS and pass the same `css` option to `ThemeScript` / `getSSRStyles`
+- **SSR FOUC** — without `ThemeScript` or `getSSRStyles`, CSS variables are absent from the server HTML; see the SSR section above
+- **Wrong variable name** — remember `colors` → `color` (singular) and camelCase → kebab: `textPrimary` → `--themed-color-text-primary`

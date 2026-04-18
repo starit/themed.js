@@ -226,6 +226,54 @@ console.log(theme.custom);
 
 The `custom` field is included in export/import and persisted to storage automatically.
 
+## Server-Side Rendering (SSR)
+
+CSS injection is a no-op on the server (no `document`). Use the SSR utilities to inject initial styles into the HTML response and prevent a flash of unstyled content (FOUC).
+
+### React — `ThemeScript`
+
+```tsx
+// app/layout.tsx (Next.js App Router)
+import { ThemeScript, ThemeProvider } from '@themed.js/react';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <head>
+        <ThemeScript defaultTheme="light" />
+      </head>
+      <body>
+        <ThemeProvider defaultTheme="light">{children}</ThemeProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### Vue / Nuxt — `getSSRStyles`
+
+```typescript
+// plugins/themed.server.ts
+import { getSSRStyles, builtinThemes } from '@themed.js/vue';
+
+export default defineNuxtPlugin(() => {
+  useHead({
+    style: [{ id: 'themed-js-styles', innerHTML: getSSRStyles('light', builtinThemes) }],
+  });
+});
+```
+
+### Vanilla SSR
+
+```typescript
+import { getSSRStyles, builtinThemes } from '@themed.js/core';
+
+const css = getSSRStyles('light', builtinThemes);
+// inject into <style id="themed-js-styles"> in your HTML template
+```
+
+> The `id="themed-js-styles"` is required — the client-side injector finds and updates this element on hydration, preventing duplicate tags.
+
 ## Built-in Themes
 
 - **Light** - Clean, modern light theme

@@ -320,6 +320,19 @@ export class ThemeManager {
   }
 
   /**
+   * Generate CSS variable declarations for the given theme without touching the DOM.
+   * Useful for server-side rendering: call this on the server and inject the result
+   * into a <style id="themed-js-styles"> tag so the client CSSInjector can find and
+   * update it without creating a duplicate or causing a flash of unstyled content.
+   */
+  getSSRStyles(themeId?: string): string {
+    const id = themeId ?? this.options.defaultTheme;
+    const theme = id ? this.themes.get(id) : null;
+    if (!theme) return '';
+    return this.cssInjector.toCSSString(theme.tokens);
+  }
+
+  /**
    * Destroy the theme manager and clean up
    */
   destroy(): void {
