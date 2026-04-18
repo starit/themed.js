@@ -1,3 +1,4 @@
+import { isValidTheme } from '../types/theme';
 import type { Theme } from '../types/theme';
 
 /**
@@ -62,7 +63,7 @@ export class LocalStorageAdapter {
 
     try {
       const parsed = JSON.parse(data);
-      return Array.isArray(parsed) ? parsed : [];
+      return Array.isArray(parsed) ? parsed.filter(isValidTheme) : [];
     } catch {
       return [];
     }

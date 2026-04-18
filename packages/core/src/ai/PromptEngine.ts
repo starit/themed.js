@@ -291,7 +291,10 @@ Additionally, if the user provides a "Custom structure" description, you MUST in
   private isValidShadowValue(s: string): boolean {
     if (s.length === 0 || s.length > 500) return false;
     if (s.trim().toLowerCase() === 'none') return true;
-    return true;
+    // Allowlist: digits, letters, whitespace, parens, comma, dot, %, #, -, +, /
+    // Covers: px offsets, hex/rgb/rgba colors, inset, modern rgb(r g b / a) syntax
+    // Blocks CSS-breaking chars: } { ; < >
+    return /^[a-zA-Z0-9\s\(\),\.%#\-\+\/]+$/.test(s.trim());
   }
 
   /**
@@ -335,18 +338,23 @@ Additionally, if the user provides a "Custom structure" description, you MUST in
   /**
    * Normalize typography tokens
    */
+  // Allowlist for font-family values: letters, digits, spaces, hyphens, quotes, commas, dots
+  // Blocks CSS-breaking chars: } { ; < > backtick newline
+  private isValidFontFamily(s: string): boolean {
+    if (typeof s !== 'string' || s.length === 0 || s.length > 200) return false;
+    return /^[a-zA-Z0-9\s\-'",\.]+$/.test(s);
+  }
+
   private normalizeTypography(typography: Record<string, unknown>): TypographyTokens {
+    const ff = typography.fontFamily as Record<string, string> | undefined;
+    const safeFontFamily = (val: string | undefined, fallback: string): string => {
+      return typeof val === 'string' && this.isValidFontFamily(val) ? val : fallback;
+    };
     return {
       fontFamily: {
-        sans:
-          (typography.fontFamily as Record<string, string>)?.sans ??
-          defaultTypographyTokens.fontFamily.sans,
-        serif:
-          (typography.fontFamily as Record<string, string>)?.serif ??
-          defaultTypographyTokens.fontFamily.serif,
-        mono:
-          (typography.fontFamily as Record<string, string>)?.mono ??
-          defaultTypographyTokens.fontFamily.mono,
+        sans: safeFontFamily(ff?.sans, defaultTypographyTokens.fontFamily.sans),
+        serif: safeFontFamily(ff?.serif, defaultTypographyTokens.fontFamily.serif),
+        mono: safeFontFamily(ff?.mono, defaultTypographyTokens.fontFamily.mono),
       },
       fontSize: {
         xs:

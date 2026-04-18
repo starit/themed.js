@@ -1,3 +1,4 @@
+import { isValidTheme } from '../types/theme';
 import type { Theme } from '../types/theme';
 
 /**
@@ -119,7 +120,7 @@ export class IndexedDBAdapter {
 
       request.onerror = () => reject(new Error('Failed to get themes'));
       request.onsuccess = () => {
-        resolve(request.result ?? []);
+        resolve((request.result ?? []).filter(isValidTheme));
       };
     });
   }
