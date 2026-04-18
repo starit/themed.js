@@ -39,7 +39,7 @@ export * from './utils/color';
 export * from './utils/contrast';
 
 // Built-in themes
-export { builtinThemes, lightTheme, darkTheme } from './themes';
+export { builtinThemes, lightTheme, darkTheme, cyberpunkTheme } from './themes';
 
 // Factory function for easy initialization
 export { createThemed } from './createThemed';

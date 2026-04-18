@@ -316,6 +316,71 @@ export const roseTheme: Theme = {
 };
 
 /**
+ * Cyberpunk theme - Neon on dark
+ */
+export const cyberpunkTheme: Theme = {
+  id: 'cyberpunk',
+  name: 'Cyberpunk',
+  description: 'High-contrast neon-on-dark cyberpunk aesthetic',
+  tokens: {
+    colors: {
+      primary: '#00ff9d',
+      secondary: '#ff00ff',
+      accent: '#00d9ff',
+      background: '#0a0a14',
+      surface: '#1a1a2e',
+      error: '#ff0040',
+      warning: '#ffaa00',
+      success: '#00ff9d',
+      info: '#00d9ff',
+      textPrimary: '#ffffff',
+      textSecondary: '#b0b0d0',
+      textDisabled: '#606080',
+      textInverse: '#0a0a14',
+      border: '#00ff9d',
+      borderLight: '#606080',
+      borderDark: '#00d9ff',
+    },
+    typography: {
+      ...defaultTypographyTokens,
+      fontFamily: {
+        sans: "'Rajdhani', 'Segoe UI', system-ui, sans-serif",
+        serif: "'Orbitron', 'Courier New', monospace",
+        mono: "'Share Tech Mono', 'Consolas', monospace",
+      },
+    },
+    spacing: defaultSpacingTokens,
+    radius: {
+      none: '0',
+      sm: '0.125rem',
+      md: '0.25rem',
+      lg: '0.5rem',
+      full: '9999px',
+    },
+    shadow: {
+      none: 'none',
+      sm: '0 0 5px #00ff9d, 0 0 10px rgba(0, 255, 157, 0.3)',
+      md: '0 0 10px #ff00ff, 0 0 20px rgba(255, 0, 255, 0.3)',
+      lg: '0 0 20px #00d9ff, 0 0 40px rgba(0, 217, 255, 0.3)',
+    },
+    transition: defaultTransitionTokens,
+  },
+  custom: {
+    cyberpunkFonts: {
+      display: 'Orbitron',
+      body: 'Rajdhani',
+      code: 'Share Tech Mono',
+      glitchEffect: 'text-shadow: 0.05em 0 0 #ff00ff, -0.05em -0.025em 0 #00ff9d;',
+    },
+  },
+  meta: {
+    version: '1.0.0',
+    createdAt: 0,
+    source: 'builtin',
+  },
+};
+
+/**
  * All built-in themes
  */
 export const builtinThemes: Theme[] = [
@@ -326,4 +391,5 @@ export const builtinThemes: Theme[] = [
   sunsetTheme,
   midnightTheme,
   roseTheme,
+  cyberpunkTheme,
 ];
