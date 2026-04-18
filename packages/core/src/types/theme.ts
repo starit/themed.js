@@ -42,6 +42,15 @@ export interface Theme {
 }
 
 /**
+ * Bundle format produced by ThemeManager.exportThemes()
+ */
+export interface ThemeExportBundle {
+  version: '1';
+  exportedAt: number;
+  themes: Theme[];
+}
+
+/**
  * Theme creation input (without auto-generated fields)
  */
 export interface ThemeInput {

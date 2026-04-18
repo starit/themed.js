@@ -226,6 +226,53 @@ console.log(theme.custom);
 
 The `custom` field is included in export/import and persisted to storage automatically.
 
+## Theme Export / Import
+
+Export themes to JSON for sharing across projects, teams, or browser storage snapshots.
+
+### Export
+
+```typescript
+// Single theme → JSON string
+const json = themed.exportTheme('midnight-ocean');
+
+// Multiple themes → bundle JSON ({ version, exportedAt, themes })
+const bundle = themed.exportThemes(['light', 'dark', 'midnight-ocean']);
+
+// All registered themes
+const all = themed.exportThemes();
+```
+
+In the browser you can trigger a file download:
+
+```typescript
+const blob = new Blob([themed.exportTheme('midnight-ocean')], { type: 'application/json' });
+const url = URL.createObjectURL(blob);
+const a = Object.assign(document.createElement('a'), { href: url, download: 'midnight-ocean.json' });
+a.click();
+URL.revokeObjectURL(url);
+```
+
+### Import
+
+```typescript
+// Single theme from a JSON string (or file contents)
+const theme = themed.importTheme(json);
+
+// Bundle produced by exportThemes(), or a plain JSON array of themes
+const themes = themed.importThemes(bundleJson);
+
+// File input example
+input.addEventListener('change', async () => {
+  const text = await input.files[0].text();
+  themed.importThemes(text);
+});
+```
+
+`importTheme` / `importThemes` validate the structure before registering and throw a descriptive error if the data is invalid or malformed.
+
+---
+
 ## Server-Side Rendering (SSR)
 
 CSS injection is a no-op on the server (no `document`). Use the SSR utilities to inject initial styles into the HTML response and prevent a flash of unstyled content (FOUC).
@@ -408,6 +455,12 @@ await themed.generate(prompt, options?);   // Generate a theme from a text promp
 // options.autoApply    — auto-apply after generation (default: true)
 // options.autoSave     — auto-save to storage after generation (default: true)
 // options.baseTheme    — adjust an existing theme instead of generating from scratch
+
+// Export / Import
+themed.exportTheme(themeId)           // → JSON string (single theme)
+themed.exportThemes(themeIds?)        // → JSON string ({ version, exportedAt, themes })
+themed.importTheme(json)              // parse + validate + register, returns Theme
+themed.importThemes(json)             // accepts bundle or plain array, returns Theme[]
 
 // Runtime configuration
 themed.configureAI(aiOptions);       // Configure AI at runtime (e.g. after user enters API key)

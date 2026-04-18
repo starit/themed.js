@@ -98,6 +98,95 @@ describe('ThemeManager', () => {
     });
   });
 
+  describe('exportTheme / importTheme', () => {
+    it('exportTheme serialises a theme to JSON', () => {
+      const json = manager.exportTheme('light');
+      const parsed = JSON.parse(json);
+      expect(parsed.id).toBe('light');
+      expect(parsed.tokens.colors.primary).toBe(lightTheme.tokens.colors.primary);
+    });
+
+    it('exportTheme throws for unknown id', () => {
+      expect(() => manager.exportTheme('missing')).toThrow('Theme "missing" not found');
+    });
+
+    it('importTheme registers and returns a valid theme', () => {
+      const json = manager.exportTheme('light');
+      manager.unregister('light');
+      expect(manager.has('light')).toBe(false);
+      const imported = manager.importTheme(json);
+      expect(imported.id).toBe('light');
+      expect(manager.has('light')).toBe(true);
+    });
+
+    it('importTheme overwrites an existing theme', () => {
+      const modified = { ...lightTheme, name: 'Light Modified' };
+      const json = JSON.stringify(modified);
+      manager.importTheme(json);
+      expect(manager.get('light')?.name).toBe('Light Modified');
+    });
+
+    it('importTheme throws on invalid JSON', () => {
+      expect(() => manager.importTheme('not json')).toThrow('importTheme: invalid JSON');
+    });
+
+    it('importTheme throws on invalid theme shape', () => {
+      expect(() => manager.importTheme('{"id":"x"}')).toThrow('importTheme: not a valid Theme object');
+    });
+  });
+
+  describe('exportThemes / importThemes', () => {
+    it('exportThemes with ids produces a bundle with those themes', () => {
+      const json = manager.exportThemes(['light', 'dark']);
+      const bundle = JSON.parse(json);
+      expect(bundle.version).toBe('1');
+      expect(bundle.themes).toHaveLength(2);
+      expect(bundle.themes.map((t: { id: string }) => t.id)).toContain('light');
+    });
+
+    it('exportThemes with no args exports all registered themes', () => {
+      const bundle = JSON.parse(manager.exportThemes());
+      expect(bundle.themes).toHaveLength(manager.getAll().length);
+    });
+
+    it('exportThemes throws for unknown id', () => {
+      expect(() => manager.exportThemes(['light', 'ghost'])).toThrow('Theme "ghost" not found');
+    });
+
+    it('importThemes from a bundle re-registers all themes', () => {
+      const json = manager.exportThemes();
+      manager.unregister('light');
+      manager.unregister('dark');
+      expect(manager.getAll()).toHaveLength(0);
+      const imported = manager.importThemes(json);
+      expect(imported).toHaveLength(2);
+      expect(manager.has('light')).toBe(true);
+      expect(manager.has('dark')).toBe(true);
+    });
+
+    it('importThemes accepts a plain array', () => {
+      const json = JSON.stringify([lightTheme, darkTheme]);
+      manager.unregister('light');
+      manager.unregister('dark');
+      manager.importThemes(json);
+      expect(manager.has('light')).toBe(true);
+      expect(manager.has('dark')).toBe(true);
+    });
+
+    it('importThemes throws on invalid JSON', () => {
+      expect(() => manager.importThemes('bad')).toThrow('importThemes: invalid JSON');
+    });
+
+    it('importThemes throws on wrong shape', () => {
+      expect(() => manager.importThemes('"a string"')).toThrow('importThemes: expected an array');
+    });
+
+    it('importThemes throws when an item is invalid', () => {
+      const json = JSON.stringify([lightTheme, { id: 'bad' }]);
+      expect(() => manager.importThemes(json)).toThrow('index 1 is not a valid Theme');
+    });
+  });
+
   describe('updateThemeCustom', () => {
     it('updates custom data on a registered theme', () => {
       const custom = { brand: 'Acme', tier: 'pro' };

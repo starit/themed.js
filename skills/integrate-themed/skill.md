@@ -382,6 +382,37 @@ await themed.apply('my-brand');
 
 ---
 
+## Theme export / import
+
+```typescript
+// Single theme → JSON string
+const json = themed.exportTheme('midnight-ocean');
+
+// All themes (or pass an id array for a subset) → bundle JSON
+const bundle = themed.exportThemes();
+const subset = themed.exportThemes(['light', 'dark']);
+
+// Import — accepts a single-theme JSON or an exportThemes() bundle or a plain array
+const theme  = themed.importTheme(json);
+const themes = themed.importThemes(bundle);
+```
+
+Both `importTheme` and `importThemes` validate the structure and throw descriptive errors on bad input.
+They overwrite any existing theme with the same `id`, so they can also be used to update a theme in place.
+
+Browser download helper:
+
+```typescript
+const blob = new Blob([themed.exportTheme('my-theme')], { type: 'application/json' });
+const a = Object.assign(document.createElement('a'), {
+  href: URL.createObjectURL(blob),
+  download: 'my-theme.json',
+});
+a.click();
+```
+
+---
+
 ## Server-side rendering (SSR)
 
 CSS injection uses the DOM and is a no-op on the server. To avoid a flash of unstyled content (FOUC), inject the initial CSS into the server-rendered HTML before the client hydrates.

@@ -1,4 +1,4 @@
-import type { Theme, ThemeInput } from './types/theme';
+import type { Theme, ThemeInput, ThemeExportBundle } from './types/theme';
 import type { ThemeEventType, ThemeEventHandler } from './types/events';
 import type {
   ThemeManagerOptions,
@@ -7,7 +7,7 @@ import type {
   StorageOptions,
   CSSOptions,
 } from './types/options';
-import { createTheme } from './types/theme';
+import { createTheme, isValidTheme } from './types/theme';
 import { EventBus } from './EventBus';
 import { CSSInjector } from './CSSInjector';
 import type { IAIThemeGenerator } from './ai/types';
@@ -330,6 +330,78 @@ export class ThemeManager {
     const theme = id ? this.themes.get(id) : null;
     if (!theme) return '';
     return this.cssInjector.toCSSString(theme.tokens);
+  }
+
+  /**
+   * Export a single theme as a JSON string.
+   */
+  exportTheme(themeId: string): string {
+    const theme = this.themes.get(themeId);
+    if (!theme) throw new Error(`Theme "${themeId}" not found`);
+    return JSON.stringify(theme, null, 2);
+  }
+
+  /**
+   * Export multiple themes as a JSON string.
+   * If no IDs are provided, all registered themes are exported.
+   */
+  exportThemes(themeIds?: string[]): string {
+    const ids = themeIds ?? Array.from(this.themes.keys());
+    const themes = ids.map((id) => {
+      const t = this.themes.get(id);
+      if (!t) throw new Error(`Theme "${id}" not found`);
+      return t;
+    });
+    const bundle: ThemeExportBundle = { version: '1', exportedAt: Date.now(), themes };
+    return JSON.stringify(bundle, null, 2);
+  }
+
+  /**
+   * Import and register a single theme from a JSON string.
+   * Overwrites any existing theme with the same id.
+   */
+  importTheme(json: string): Theme {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(json);
+    } catch {
+      throw new Error('importTheme: invalid JSON');
+    }
+    if (!isValidTheme(parsed)) throw new Error('importTheme: not a valid Theme object');
+    this.register(parsed);
+    return parsed;
+  }
+
+  /**
+   * Import and register multiple themes from a JSON string produced by exportThemes().
+   * Also accepts a plain JSON array of Theme objects.
+   */
+  importThemes(json: string): Theme[] {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(json);
+    } catch {
+      throw new Error('importThemes: invalid JSON');
+    }
+
+    let raw: unknown[];
+    if (Array.isArray(parsed)) {
+      raw = parsed;
+    } else if (
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      Array.isArray((parsed as Record<string, unknown>).themes)
+    ) {
+      raw = (parsed as Record<string, unknown>).themes as unknown[];
+    } else {
+      throw new Error('importThemes: expected an array or an exportThemes() bundle');
+    }
+
+    return raw.map((item, i) => {
+      if (!isValidTheme(item)) throw new Error(`importThemes: item at index ${i} is not a valid Theme`);
+      this.register(item);
+      return item;
+    });
   }
 
   /**
