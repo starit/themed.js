@@ -33,7 +33,7 @@ Always run `pnpm test:run` before marking a task complete.
 | `createThemed(options)` | Factory — returns a `ThemeManager` |
 | `ThemeManager` | Core class (apply, register, generate, events, SSR) |
 | `getSSRStyles(themeId, themes, cssOptions?)` | Server-side CSS generation (no DOM) |
-| `builtinThemes` | Array of 7 pre-built themes |
+| `builtinThemes` | Array of 8 pre-built themes (light, dark, ocean, forest, sunset, midnight, rose, cyberpunk) |
 | `createTheme(input)` | Helper to build a `Theme` object |
 | `createAIProvider(options)` | Instantiate an AI provider directly |
 

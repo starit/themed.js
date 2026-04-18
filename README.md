@@ -11,7 +11,7 @@ A powerful, framework-agnostic theme management library with AI-powered theme ge
 - **AI-Powered Theme Generation** - Generate beautiful themes from text descriptions using OpenAI, Claude, or custom AI providers
 - **Custom Structured Data** - Attach arbitrary JSON data to any theme; AI can generate it alongside tokens
 - **CSS Variables** - Non-invasive styling using CSS Custom Properties
-- **Built-in Themes** - 7 beautiful pre-designed themes out of the box
+- **Built-in Themes** - 8 beautiful pre-designed themes out of the box
 - **Type-Safe** - Full TypeScript support with comprehensive type definitions
 - **Persistent** - Built-in localStorage and IndexedDB support for theme persistence
 - **WCAG Compliance** - Utilities for checking color contrast and accessibility
@@ -330,6 +330,7 @@ const css = getSSRStyles('light', builtinThemes);
 - **Sunset** - Warm gradient colors
 - **Midnight** - Deep dark with purple accents
 - **Rose** - Soft pink tones
+- **Cyberpunk** - High-contrast neon-on-dark cyberpunk aesthetic
 
 ## AI Providers
 
@@ -406,7 +407,7 @@ The `extension` provider delegates all LLM calls to the **Themed LLM Secure Prox
 import { createThemed } from '@themed.js/core';
 
 const themed = createThemed({
-  defaultTheme: 'zinc',
+  defaultTheme: 'light',
   ai: {
     provider: 'extension',
   },
@@ -467,11 +468,13 @@ themed.configureAI(aiOptions);       // Configure AI at runtime (e.g. after user
 themed.configureStorage(opts);       // Reconfigure storage
 themed.configureCSS(opts);           // Reconfigure CSS variable injection
 
-// Events (see docs/EVENTS.md for the full event contract)
-themed.on('theme:changed', ({ theme }) => {});
-themed.on('theme:generating', ({ prompt }) => {});
-themed.on('theme:generated', ({ theme, prompt, duration }) => {});
-themed.on('theme:error', ({ error, context }) => {});
+// Events
+themed.on('theme:changed',      ({ theme, previousTheme }) => {});
+themed.on('theme:registered',   ({ theme }) => {});
+themed.on('theme:unregistered', ({ themeId }) => {});
+themed.on('theme:generating',   ({ prompt }) => {});
+themed.on('theme:generated',    ({ theme, prompt, duration }) => {});
+themed.on('theme:error',        ({ error, context }) => {});
 themed.off(event, handler);
 ```
 

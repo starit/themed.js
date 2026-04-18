@@ -86,6 +86,10 @@ await themed.init();              // loads saved state, applies default theme
 | `off` | `(event, handler): void` | Unsubscribe |
 | `configureAI` | `(opts: AIOptions): void` | Swap AI config at runtime |
 | `updateThemeCustom` | `(themeId, custom): void` | Update arbitrary custom JSON on a theme |
+| `exportTheme` | `(themeId: string): string` | Serialize a single theme to JSON |
+| `exportThemes` | `(ids?: string[]): string` | Serialize multiple (or all) themes to a bundle JSON |
+| `importTheme` | `(json: string): Theme` | Parse, validate, register one theme |
+| `importThemes` | `(json: string): Theme[]` | Parse, validate, register a bundle or array |
 | `destroy` | `(): void` | Clean up everything |
 
 ---
