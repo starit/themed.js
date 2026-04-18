@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTheme, useAITheme } from '@themed.js/react';
-import { createTheme, type ThemeInput, type ThemedLLMProxy } from '@themed.js/core';
+import { type ThemedLLMProxy } from '@themed.js/core';
 
 type ThemedWindow = Window & typeof globalThis & { ThemedLLM?: ThemedLLMProxy };
 const getExtension = () =>
@@ -369,48 +369,14 @@ function toHexDisplay(value: string): string {
   return value;
 }
 
-function getThemeExportData(theme: { name: string; id: string; tokens: object; custom?: Record<string, unknown> }) {
-  return {
-    theme: { name: theme.name, id: theme.id },
-    tokens: theme.tokens,
-    custom: theme.custom,
-    exportedAt: new Date().toISOString(),
-  };
-}
-
-function downloadThemeTokens(theme: { name: string; id: string; tokens: object }) {
-  const data = getThemeExportData(theme);
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: 'application/json',
-  });
+function downloadTheme(json: string, name: string) {
+  const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${theme.name.replace(/\s+/g, '-')}-tokens.json`;
+  a.download = `${name.replace(/\s+/g, '-')}-theme.json`;
   a.click();
   URL.revokeObjectURL(url);
-}
-
-/** Parse JSON string into theme input. Supports export format { theme, tokens, custom? } or { id, name, tokens, custom? }. */
-function parseThemeFromJson(json: string): { id: string; name: string; tokens: object; custom?: Record<string, unknown> } {
-  const data = JSON.parse(json) as Record<string, unknown>;
-  if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
-  const tokens = data.tokens as Record<string, unknown> | undefined;
-  if (!tokens || typeof tokens !== 'object' || !tokens.colors || !tokens.typography) {
-    throw new Error('JSON must contain theme.tokens with colors and typography');
-  }
-  const custom =
-    data.custom !== undefined && typeof data.custom === 'object' && data.custom !== null && !Array.isArray(data.custom)
-      ? (data.custom as Record<string, unknown>)
-      : undefined;
-  const theme = data.theme as { id?: string; name?: string } | undefined;
-  if (theme && typeof theme.id === 'string' && typeof theme.name === 'string') {
-    return { id: theme.id, name: theme.name, tokens, custom };
-  }
-  if (typeof data.id === 'string' && typeof data.name === 'string') {
-    return { id: data.id, name: data.name, tokens, custom };
-  }
-  throw new Error('JSON must contain theme.id/theme.name or top-level id/name');
 }
 
 function TokenPills({
@@ -437,7 +403,7 @@ function TokenPills({
 }
 
 function ColorPreview() {
-  const { theme, register, apply, updateThemeCustom } = useTheme();
+  const { theme, apply, updateThemeCustom, exportTheme, importTheme } = useTheme();
   const [showViewJson, setShowViewJson] = useState(false);
   const [showImportJson, setShowImportJson] = useState(false);
   const [importText, setImportText] = useState('');
@@ -477,10 +443,8 @@ function ColorPreview() {
   const handleImport = () => {
     setImportError('');
     try {
-      const input = parseThemeFromJson(importText) as ThemeInput;
-      const next = createTheme(input);
-      register(next);
-      apply(next.id);
+      const imported = importTheme(importText);
+      apply(imported.id);
       setShowImportJson(false);
       setImportText('');
     } catch (e) {
@@ -530,7 +494,7 @@ function ColorPreview() {
           <button
             type="button"
             className="download-btn"
-            onClick={() => downloadThemeTokens(theme)}
+            onClick={() => downloadTheme(exportTheme(theme.id), theme.name)}
           >
             Download JSON
           </button>
@@ -555,7 +519,7 @@ function ColorPreview() {
               <h4>Theme JSON</h4>
               <button type="button" className="json-modal-close" onClick={() => setShowViewJson(false)}>Close</button>
             </div>
-            <pre className="json-modal-body">{JSON.stringify(getThemeExportData(theme), null, 2)}</pre>
+            <pre className="json-modal-body">{exportTheme(theme.id)}</pre>
           </div>
         </div>
       )}

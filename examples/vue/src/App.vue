@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from 'vue';
 import { useTheme, useAITheme } from '@themed.js/vue';
-import { createTheme, type ThemedLLMProxy } from '@themed.js/core';
+import { type ThemedLLMProxy } from '@themed.js/core';
 
 type ThemedWindow = Window & typeof globalThis & { ThemedLLM?: ThemedLLMProxy };
 const getExtension = () =>
@@ -19,7 +19,7 @@ const PROVIDERS = [
   { value: 'extension', label: 'Extension (Chrome)', model: '' },
 ] as const;
 
-const { theme, themes, apply, register, updateThemeCustom } = useTheme();
+const { theme, themes, apply, updateThemeCustom, exportTheme, importTheme } = useTheme();
 const { generate, isGenerating, error, isConfigured, modelInfo, configureAI } = useAITheme();
 
 // Detect extension synchronously so initial render is correct (no flash)
@@ -176,51 +176,17 @@ const toHexDisplay = (value: string): string => {
   return value;
 };
 
-const themeExportData = computed(() => {
-  if (!theme.value) return null;
-  return {
-    theme: { name: theme.value.name, id: theme.value.id },
-    tokens: theme.value.tokens,
-    custom: theme.value.custom,
-    exportedAt: new Date().toISOString(),
-  };
-});
-
 const downloadThemeTokens = () => {
-  const data = themeExportData.value;
-  if (!data) return;
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: 'application/json',
-  });
+  if (!theme.value) return;
+  const json = exportTheme(theme.value.id);
+  const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${theme.value.name.replace(/\s+/g, '-')}-tokens.json`;
+  a.download = `${theme.value.name.replace(/\s+/g, '-')}-theme.json`;
   a.click();
   URL.revokeObjectURL(url);
 };
-
-/** Parse JSON string into theme input. Supports export format { theme, tokens, custom? } or { id, name, tokens, custom? }. */
-function parseThemeFromJson(json: string): { id: string; name: string; tokens: object; custom?: Record<string, unknown> } {
-  const data = JSON.parse(json) as Record<string, unknown>;
-  if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
-  const tokens = data.tokens as Record<string, unknown> | undefined;
-  if (!tokens || typeof tokens !== 'object' || !tokens.colors || !tokens.typography) {
-    throw new Error('JSON must contain theme.tokens with colors and typography');
-  }
-  const custom =
-    data.custom !== undefined && typeof data.custom === 'object' && data.custom !== null && !Array.isArray(data.custom)
-      ? (data.custom as Record<string, unknown>)
-      : undefined;
-  const themeObj = data.theme as { id?: string; name?: string } | undefined;
-  if (themeObj && typeof themeObj.id === 'string' && typeof themeObj.name === 'string') {
-    return { id: themeObj.id, name: themeObj.name, tokens, custom };
-  }
-  if (typeof data.id === 'string' && typeof data.name === 'string') {
-    return { id: data.id, name: data.name, tokens, custom };
-  }
-  throw new Error('JSON must contain theme.id/theme.name or top-level id/name');
-}
 
 /** Parse the first font name from a CSS font-family value */
 function getFirstFontName(stack: string): string {
@@ -251,10 +217,8 @@ watch(
 const handleImport = () => {
   importError.value = '';
   try {
-    const input = parseThemeFromJson(importText.value);
-    const next = createTheme(input);
-    register(next);
-    apply(next.id);
+    const imported = importTheme(importText.value);
+    apply(imported.id);
     showImportJson.value = false;
     importText.value = '';
   } catch (e) {

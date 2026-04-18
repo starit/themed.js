@@ -1,4 +1,4 @@
-import { createThemed, createTheme, type ThemeInput, type ThemedLLMProxy } from '@themed.js/core';
+import { createThemed, type ThemedLLMProxy } from '@themed.js/core';
 
 type ThemedWindow = Window & typeof globalThis & { ThemedLLM?: ThemedLLMProxy };
 const getExtension = () =>
@@ -120,58 +120,23 @@ function getFirstFontName(stack: string): string {
   return first.replace(/^['"]|['"]$/g, '') || first;
 }
 
-function getThemeExportData() {
-  const theme = themed.getActive();
-  if (!theme) return null;
-  return {
-    theme: { name: theme.name, id: theme.id },
-    tokens: theme.tokens,
-    custom: theme.custom,
-    exportedAt: new Date().toISOString(),
-  };
-}
-
-// Download theme tokens as JSON
 function downloadThemeTokens() {
-  const data = getThemeExportData();
-  if (!data) return;
-  const theme = themed.getActive()!;
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: 'application/json',
-  });
+  const theme = themed.getActive();
+  if (!theme) return;
+  const json = themed.exportTheme(theme.id);
+  const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${theme.name.replace(/\s+/g, '-')}-tokens.json`;
+  a.download = `${theme.name.replace(/\s+/g, '-')}-theme.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
 
-/** Parse JSON string into theme input. Supports export format { theme, tokens, custom? } or { id, name, tokens, custom? }. */
-function parseThemeFromJson(json: string): { id: string; name: string; tokens: object; custom?: Record<string, unknown> } {
-  const data = JSON.parse(json) as Record<string, unknown>;
-  if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
-  const tokens = data.tokens as Record<string, unknown> | undefined;
-  if (!tokens || typeof tokens !== 'object' || !tokens.colors || !tokens.typography) {
-    throw new Error('JSON must contain theme.tokens with colors and typography');
-  }
-  const custom =
-    data.custom !== undefined && typeof data.custom === 'object' && data.custom !== null && !Array.isArray(data.custom)
-      ? (data.custom as Record<string, unknown>)
-      : undefined;
-  const themeObj = data.theme as { id?: string; name?: string } | undefined;
-  if (themeObj && typeof themeObj.id === 'string' && typeof themeObj.name === 'string') {
-    return { id: themeObj.id, name: themeObj.name, tokens, custom };
-  }
-  if (typeof data.id === 'string' && typeof data.name === 'string') {
-    return { id: data.id, name: data.name, tokens, custom };
-  }
-  throw new Error('JSON must contain theme.id/theme.name or top-level id/name');
-}
-
 function showViewJsonModal() {
-  const data = getThemeExportData();
-  if (!data) return;
+  const theme = themed.getActive();
+  if (!theme) return;
+  const json = themed.exportTheme(theme.id);
   const overlay = document.createElement('div');
   overlay.className = 'json-modal-overlay';
   const modal = document.createElement('div');
@@ -181,7 +146,7 @@ function showViewJsonModal() {
       <h4>Theme JSON</h4>
       <button type="button" class="json-modal-close">Close</button>
     </div>
-    <pre class="json-modal-body">${escapeHtml(JSON.stringify(data, null, 2))}</pre>
+    <pre class="json-modal-body">${escapeHtml(json)}</pre>
   `;
   overlay.appendChild(modal);
   const close = () => {
@@ -253,10 +218,8 @@ function showImportJsonModal() {
     errorEl.style.display = 'none';
     errorEl.textContent = '';
     try {
-      const input = parseThemeFromJson(text) as ThemeInput;
-      const next = createTheme(input);
-      themed.register(next);
-      themed.apply(next.id);
+      const imported = themed.importTheme(text);
+      themed.apply(imported.id);
       close();
     } catch (e) {
       errorEl.textContent = e instanceof Error ? e.message : 'Invalid theme JSON';

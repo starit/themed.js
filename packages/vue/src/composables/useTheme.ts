@@ -24,6 +24,10 @@ export interface UseThemeReturn {
   get: (themeId: string) => Theme | undefined;
   /** Update a theme's custom data */
   updateThemeCustom: (themeId: string, custom: Record<string, unknown>) => void;
+  /** Serialize a theme to a JSON string */
+  exportTheme: (themeId: string) => string;
+  /** Parse, validate, and register a theme from a JSON string; returns the imported Theme */
+  importTheme: (json: string) => Theme;
 }
 
 /**
@@ -88,6 +92,10 @@ export function useTheme(): UseThemeReturn {
     manager.updateThemeCustom(themeId, custom);
   };
 
+  const exportTheme = (themeId: string) => manager.exportTheme(themeId);
+
+  const importTheme = (json: string) => manager.importTheme(json);
+
   return {
     theme,
     themes,
@@ -98,5 +106,7 @@ export function useTheme(): UseThemeReturn {
     has,
     get,
     updateThemeCustom,
+    exportTheme,
+    importTheme,
   };
 }
