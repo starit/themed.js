@@ -30,13 +30,13 @@ A powerful, framework-agnostic theme management library with AI-powered theme ge
 
 ```bash
 # Core only (vanilla JS)
-npm install @themed.js/core
+pnpm add @themed.js/core
 
 # With React
-npm install @themed.js/core @themed.js/react
+pnpm add @themed.js/core @themed.js/react
 
 # With Vue
-npm install @themed.js/core @themed.js/vue
+pnpm add @themed.js/core @themed.js/vue
 ```
 
 ### Vanilla JavaScript
@@ -599,7 +599,7 @@ cd examples/vue && pnpm dev     # Port 3002
    ```
 3. Or publish a single package: `pnpm --filter @themed.js/core publish --no-git-checks`.
 
-**Note:** Scoped packages (`@themed.js/*`) are public via `publishConfig.access`. Ensure you are logged in to npm (`npm login`) and have access to the `themed.js` scope (create the org at npmjs.com if needed).
+**Note:** Scoped packages (`@themed.js/*`) are public via `publishConfig.access`. Ensure you are logged in (`pnpm login`) and have access to the `themed.js` scope (create the org at npmjs.com if needed).
 
 ## AI Agent Skills
 

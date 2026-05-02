@@ -1065,3 +1065,39 @@ p {
   font-size: var(--themed-font-size-xl);
   color: var(--themed-color-text-secondary);
 }
+
+@media (max-width: 600px) {
+  .container {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: var(--themed-font-size-2xl, 1.5rem);
+  }
+
+  .ai-input-group {
+    flex-direction: column;
+  }
+
+  .ai-btn {
+    width: 100%;
+  }
+
+  .ai-config-row {
+    flex-direction: column;
+  }
+
+  .ai-config-select,
+  .ai-config-key-input {
+    width: 100%;
+  }
+
+  .json-modal-import .json-modal-body {
+    min-width: 0;
+  }
+
+  .card-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
