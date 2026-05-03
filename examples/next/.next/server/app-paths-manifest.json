@@ -1,0 +1,4 @@
+{
+  "/api/generate-theme/route": "app/api/generate-theme/route.js",
+  "/page": "app/page.js"
+}

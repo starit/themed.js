@@ -3,18 +3,22 @@
 [![npm version](https://img.shields.io/npm/v/@themed.js/core.svg)](https://www.npmjs.com/package/@themed.js/core)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-A powerful, framework-agnostic theme management library with AI-powered theme generation.
+**[Demo →](https://starit.me/themed.js)**
+
+**AI-generated themes for modern frontends.**
+
+Themed.js lets users generate personalized frontend themes from natural language prompts.
 
 ## Features
 
-- **Framework Agnostic** - Works with vanilla JS, React, Vue, or any framework
-- **AI-Powered Theme Generation** - Generate beautiful themes from text descriptions using OpenAI, Claude, or custom AI providers
-- **Custom Structured Data** - Attach arbitrary JSON data to any theme; AI can generate it alongside tokens
-- **CSS Variables** - Non-invasive styling using CSS Custom Properties
-- **Built-in Themes** - 8 beautiful pre-designed themes out of the box
-- **Type-Safe** - Full TypeScript support with comprehensive type definitions
-- **Persistent** - Built-in localStorage and IndexedDB support for theme persistence
-- **WCAG Compliance** - Utilities for checking color contrast and accessibility
+- **Framework Agnostic** — vanilla JS, React, Vue
+- **AI Generation** — describe a theme in plain text; supports OpenAI, Claude, Gemini, Groq, DeepSeek, Moonshot, and a Chrome extension proxy
+- **Custom Structured Data** — attach arbitrary JSON to any theme; AI can generate it alongside tokens
+- **CSS Variables** — all tokens injected as `--themed-*` custom properties
+- **Built-in Themes** — 8 themes included
+- **TypeScript** — full type definitions across all packages
+- **Persistent** — localStorage and IndexedDB, configurable
+- **WCAG** — color contrast utilities
 
 ## Packages
 
@@ -61,10 +65,10 @@ themed.apply('dark');
 const theme = await themed.generate('A warm autumn sunset theme');
 
 // Generate with custom structured data
-const themed2 = await themed.generate('A corporate blue theme', {
+const theme2 = await themed.generate('A corporate blue theme', {
   customSchema: 'Brand guidelines with name, tone of voice, and target audience',
 });
-// theme.custom → { "brandName": "...", "tone": "...", "audience": "..." }
+// theme2.custom → { "brandName": "...", "tone": "...", "audience": "..." }
 ```
 
 ### React
@@ -137,8 +141,6 @@ app.use(themedPlugin, {
 
 ## Using CSS Variables
 
-Themed.js injects CSS variables that you can use in your stylesheets:
-
 ```css
 .button {
   background-color: var(--themed-color-primary);
@@ -155,7 +157,7 @@ Themed.js injects CSS variables that you can use in your stylesheets:
 
 ## Custom Structured Data
 
-Every theme can carry an optional `custom` field — an arbitrary JSON object — that travels with the theme through storage, export/import, and AI generation.
+Themes have an optional `custom` field — an arbitrary JSON object persisted through storage, export/import, and AI generation.
 
 ### Attach custom data to an existing theme
 
@@ -227,8 +229,6 @@ console.log(theme.custom);
 The `custom` field is included in export/import and persisted to storage automatically.
 
 ## Theme Export / Import
-
-Export themes to JSON for sharing across projects, teams, or browser storage snapshots.
 
 ### Export
 
@@ -323,18 +323,9 @@ const css = getSSRStyles('light', builtinThemes);
 
 ## Built-in Themes
 
-- **Light** - Clean, modern light theme
-- **Dark** - Comfortable dark theme
-- **Ocean** - Calm blue tones
-- **Forest** - Natural green tones
-- **Sunset** - Warm gradient colors
-- **Midnight** - Deep dark with purple accents
-- **Rose** - Soft pink tones
-- **Cyberpunk** - High-contrast neon-on-dark cyberpunk aesthetic
+Light · Dark · Ocean · Forest · Sunset · Midnight · Rose · Cyberpunk
 
 ## AI Providers
-
-Themed.js supports multiple AI providers:
 
 ```typescript
 // OpenAI (default: gpt-4o-mini)
@@ -418,7 +409,7 @@ const theme = await themed.generate('A warm sunset theme');
 // All LLM traffic goes through the extension — no key in this page.
 ```
 
-If the extension is not installed or not active when `generate()` is called, a clear error is thrown:
+If the extension isn't detected when `generate()` is called:
 
 ```
 Themed LLM Proxy extension is not detected.
@@ -439,7 +430,7 @@ themed.destroy();
 // Theme management
 themed.register(theme);               // Register a theme
 themed.registerMany([...themes]);     // Register multiple themes
-themed.unregister(themeId);          // Remove a theme
+themed.unregister(themeId);          // Remove a theme → returns boolean (false if not found)
 themed.apply(themeId);               // Apply a theme by ID
 themed.getActive();                  // Get the currently active Theme
 themed.get(themeId);                 // Get a theme by ID
@@ -475,6 +466,8 @@ themed.on('theme:unregistered', ({ themeId }) => {});
 themed.on('theme:generating',   ({ prompt }) => {});
 themed.on('theme:generated',    ({ theme, prompt, duration }) => {});
 themed.on('theme:error',        ({ error, context }) => {});
+themed.on('storage:saved',      ({ key }) => {});
+themed.on('storage:loaded',     ({ key, value }) => {});
 themed.off(event, handler);
 ```
 
@@ -486,13 +479,14 @@ interface Theme {
   name: string;
   description?: string;
   tokens: ThemeTokens;
-  /** Arbitrary JSON data attached to this theme (brand guidelines, metadata, etc.) */
-  custom?: Record<string, unknown>;
+  custom?: Record<string, unknown>;  // arbitrary JSON attached to this theme
   meta: {
     version: string;
     createdAt: number;
+    updatedAt?: number;
     source: 'builtin' | 'user' | 'ai';
     aiPrompt?: string;
+    aiModel?: string;
   };
 }
 ```
@@ -521,14 +515,22 @@ interface ThemeTokens {
   };
   typography: {
     fontFamily: { sans: string; serif: string; mono: string };
-    fontSize: { xs, sm, base, lg, xl, '2xl', '3xl': string };
-    fontWeight: { light, normal, medium, semibold, bold: number };
-    lineHeight: { tight, normal, relaxed: number };
+    fontSize:   { xs: string; sm: string; base: string; lg: string; xl: string; '2xl': string; '3xl': string };
+    fontWeight: { light: number; normal: number; medium: number; semibold: number; bold: number };
+    lineHeight: { tight: number; normal: number; relaxed: number };
   };
-  spacing?: Record<string, string>;  // e.g. { sm: '0.5rem', md: '1rem', ... }
-  radius?: Record<string, string>;   // e.g. { sm: '0.25rem', full: '9999px', ... }
-  shadow?: Record<string, string>;   // e.g. { sm: '0 1px 2px ...', md: '...', ... }
-  transition?: Record<string, string>;
+  spacing?: {
+    none: string; xs: string; sm: string; md: string; lg: string; xl: string; '2xl': string;
+  };
+  radius?: {
+    none: string; sm: string; md: string; lg: string; full: string;
+  };
+  shadow?: {
+    none: string; sm: string; md: string; lg: string;
+  };
+  transition?: {
+    fast: string; normal: string; slow: string;
+  };
 }
 ```
 
@@ -552,6 +554,98 @@ interface GenerateOptions {
   customSchema?: string;
 }
 ```
+
+### ThemeManagerOptions
+
+Full options for `createThemed()`:
+
+```typescript
+interface ThemeManagerOptions {
+  defaultTheme?: string;      // default: 'light'
+  themes?: Theme[];           // additional themes to register alongside builtins
+  ai?: AIOptions;             // AI provider config
+  storage?: StorageOptions;
+  css?: CSSOptions;
+  debug?: boolean;            // log events to console
+}
+
+interface StorageOptions {
+  type?: 'localStorage' | 'indexedDB' | 'none';  // default: 'localStorage'
+  prefix?: string;            // key prefix, default: 'themed'
+  dbName?: string;            // IndexedDB database name
+  autoSave?: boolean;         // persist on apply(), default: true
+  autoLoad?: boolean;         // restore last theme on init(), default: true
+}
+
+interface CSSOptions {
+  prefix?: string;            // variable prefix, default: '--themed'
+  target?: HTMLElement | null; // injection target, default: document.documentElement
+  useRoot?: boolean;          // inject on :root, default: true
+}
+```
+
+Example — use IndexedDB and a custom variable prefix:
+
+```typescript
+const themed = createThemed({
+  defaultTheme: 'dark',
+  storage: { type: 'indexedDB', dbName: 'my-app-themes' },
+  css: { prefix: '--app' },
+});
+```
+
+### React Hooks
+
+#### `useTheme()`
+
+```typescript
+const {
+  theme,          // Theme | null — active theme
+  themes,         // Theme[]    — all registered themes
+  initialized,    // boolean
+  apply,          // (themeId: string) => Promise<void>
+  register,       // (theme: Theme | ThemeInput) => void
+  unregister,     // (themeId: string) => boolean
+  has,            // (themeId: string) => boolean
+  get,            // (themeId: string) => Theme | undefined
+  updateThemeCustom, // (themeId: string, custom: Record<string, unknown>) => void
+  exportTheme,    // (themeId: string) => string
+  importTheme,    // (json: string) => Theme
+} = useTheme();
+```
+
+#### `useAITheme()`
+
+```typescript
+const {
+  generate,       // (prompt: string, opts?: { customSchema?: string }) => Promise<Theme>
+  adjust,         // (instruction: string, opts?: { customSchema?: string }) => Promise<Theme>
+                  //   adjusts the currently active theme based on instruction
+  configureAI,    // (options: AIOptions) => void — set API key at runtime
+  isGenerating,   // boolean
+  isConfigured,   // boolean
+  error,          // Error | null
+  modelInfo,      // { provider: string; model?: string } | null
+} = useAITheme();
+```
+
+### Vue Composables
+
+Same shape as React hooks, but reactive values are wrapped in `ComputedRef`:
+
+```typescript
+const { theme, themes, initialized } = useTheme();
+// theme      → ComputedRef<Theme | null>
+// themes     → ComputedRef<Theme[]>
+// initialized → ComputedRef<boolean>
+
+const { isGenerating, isConfigured, error, modelInfo } = useAITheme();
+// all four   → ComputedRef<...>
+```
+
+`apply`, `generate`, `adjust`, `configureAI`, `register`, `unregister`, `updateThemeCustom`, `exportTheme`, `importTheme` are plain functions (not refs).
+
+---
 
 ## Deploying to GitHub Pages
 
@@ -587,7 +681,12 @@ pnpm test:run
 cd examples/vanilla && pnpm dev  # Port 3000
 cd examples/react && pnpm dev   # Port 3001
 cd examples/vue && pnpm dev     # Port 3002
+cd examples/next && pnpm dev    # Port 3003
 ```
+
+### Next.js example (server-side AI proxy)
+
+The `examples/next` app demonstrates generating themes via a Next.js API route so the LLM API key stays on the server and is never sent to the browser. Set `AI_PROVIDER` and `AI_API_KEY` in `examples/next/.env.local` before running. See [examples/next/README.md](examples/next/README.md) for details.
 
 ## Publishing (maintainers)
 
@@ -603,17 +702,21 @@ cd examples/vue && pnpm dev     # Port 3002
 
 ## AI Agent Skills
 
-themed.js ships a ready-to-use skill for AI agent frameworks that support the skill protocol (Claude Code, OpenClaw, etc.).
+Two skills for Claude Code and compatible agent frameworks:
 
-| Skill | Description |
-|-------|-------------|
-| `integrate-themed` | Guides an agent through installing and integrating themed.js into any project |
+| Skill | Version | Description |
+|-------|---------|-------------|
+| `integrate-themed` | 1.1.0 | Install and wire up themed.js in a vanilla, React, or Vue project |
+| `generate-theme` | 1.0.0 | Generate a `Theme` object from a text description; outputs TypeScript, no running app needed |
 
-**Skills directory:** [`skills/`](./skills/)
+Skills are in [`skills/`](./skills/). Discovery via [`skills/index.json`](./skills/index.json).
 
-Each skill has a `manifest.json` (id, version, tags, compatible agents) and a `skill.md` (full instructions). Agents can discover all available skills via [`skills/index.json`](./skills/index.json).
+**Claude Code** — invoke inside any project:
 
-**Claude Code** — invoke with `/integrate-themed` inside any project that lists this repo as a dependency.
+```
+/integrate-themed   — set up themed.js in the current project
+/generate-theme     — generate a Theme object from a description
+```
 
 ## License
 

@@ -49,9 +49,9 @@ export abstract class BaseAIProvider implements AIProvider {
 
   constructor(config: AIProviderConfig) {
     this.config = {
-      timeout: 30000,
-      maxRetries: 3,
       ...config,
+      timeout: config.timeout ?? 30000,
+      maxRetries: config.maxRetries ?? 3,
     };
   }
 
