@@ -12,6 +12,10 @@
   "scripts": {
     "dev": "pnpm --filter @themed.js/core run build && pnpm --filter '!@themed.js/core' -r --parallel run dev",
     "dev:core": "pnpm --filter @themed.js/core run dev",
+    "changeset": "changeset",
+    "changeset:status": "changeset status --verbose",
+    "changeset:version": "changeset version",
+    "release": "pnpm test:run && pnpm run build:packages && changeset publish",
     "build": "pnpm -r run build",
     "build:packages": "pnpm --filter \"./packages/*\" run build",
     "test": "vitest",
@@ -25,6 +29,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
+    "@changesets/cli": "^2.31.0",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^2.0.0",
     "happy-dom": "^15.0.0",

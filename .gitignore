@@ -6,6 +6,17 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Next.js
+.next/
+out/
+.vercel/
+
+# GitHub Pages build staging (created by workflows or local scripts)
+deploy/
+
+# Packed tarballs
+*.tgz
+
 # IDE
 .vscode/
 .idea/
