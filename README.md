@@ -690,15 +690,15 @@ The `examples/next` app demonstrates generating themes via a Next.js API route s
 
 ## Publishing (maintainers)
 
-1. Bump version in each package: `packages/*/package.json` (e.g. `0.1.0` → `0.1.1`).
-2. Build and publish all packages:
-   ```bash
-   pnpm build
-   pnpm publish -r --no-git-checks
-   ```
-3. Or publish a single package: `pnpm --filter @themed.js/core publish --no-git-checks`.
+Publishing is managed with **Changesets**.
 
-**Note:** Scoped packages (`@themed.js/*`) are public via `publishConfig.access`. Ensure you are logged in (`pnpm login`) and have access to the `themed.js` scope (create the org at npmjs.com if needed).
+- Create a changeset in your PR: `pnpm changeset`
+- Apply version bumps + changelogs: `pnpm changeset:version`
+- Publish (runs tests + builds first): `pnpm release`
+
+For the full PR-driven + GitHub Actions workflow, see [docs/RELEASE.md](docs/RELEASE.md).
+
+**Note:** You must be authenticated to npm (`npm login`) and have publish access to the `@themed.js` scope.
 
 ## AI Agent Skills
 

@@ -5,7 +5,7 @@ Core library for Themed.js — a powerful theme management system with AI-powere
 ## Installation
 
 ```bash
-npm install @themed.js/core
+pnpm add @themed.js/core
 ```
 
 ## Usage

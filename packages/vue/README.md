@@ -5,7 +5,7 @@ Vue 3 bindings for Themed.js — composables and plugin for theme management.
 ## Installation
 
 ```bash
-npm install @themed.js/core @themed.js/vue
+pnpm add @themed.js/core @themed.js/vue
 ```
 
 ## Usage

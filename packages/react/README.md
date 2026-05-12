@@ -5,7 +5,7 @@ React bindings for Themed.js — hooks and context provider for theme management
 ## Installation
 
 ```bash
-npm install @themed.js/core @themed.js/react
+pnpm add @themed.js/core @themed.js/react
 ```
 
 ## Usage
