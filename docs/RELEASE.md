@@ -63,6 +63,19 @@ pnpm build:packages
 pnpm changeset:status
 ```
 
+If it prints something like:
+
+- `Running release would release NO packages ...`
+
+that means there are **no pending changesets** (no `.changeset/*.md` files describing version bumps).
+Create one with:
+
+```bash
+pnpm changeset
+```
+
+Then commit the generated file under `.changeset/` and re-run `pnpm changeset:status`.
+
 ### 3) Apply versions + changelogs
 
 ```bash
@@ -91,6 +104,48 @@ Notes:
 
 - `pnpm release` runs tests and builds packages before publishing.
 - Changesets will only publish packages that have version bumps.
+
+## Troubleshooting
+
+### "version X.Y.Z is already published" / "No unpublished projects to publish"
+
+Example output:
+
+- `warn @themed.js/core is not being published because version 0.1.0 is already published on npm`
+- `warn No unpublished projects to publish`
+
+This means your local `packages/*/package.json` versions are **not newer** than what is already on npm.
+npm does not allow re-publishing the same version.
+
+Fix:
+
+1. Create a changeset describing the release:
+
+```bash
+pnpm changeset
+```
+
+2. Apply version bumps + update changelogs:
+
+```bash
+pnpm changeset:version
+```
+
+3. Commit the version/changelog updates.
+
+4. Publish again:
+
+```bash
+pnpm release
+```
+
+Sanity-check what npm currently has:
+
+```bash
+npm view @themed.js/core version
+npm view @themed.js/react version
+npm view @themed.js/vue version
+```
 
 ## Post-release Checks
 

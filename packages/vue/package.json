@@ -1,6 +1,6 @@
 {
   "name": "@themed.js/vue",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Vue bindings for Themed.js",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -18,7 +18,10 @@
       }
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build",
