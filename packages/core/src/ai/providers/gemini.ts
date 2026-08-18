@@ -38,7 +38,7 @@ export class GeminiProvider extends BaseAIProvider {
     super(config);
     this.baseURL =
       config.baseURL ?? 'https://generativelanguage.googleapis.com/v1beta/openai';
-    this.model = config.model ?? 'gemini-2.5-flash';
+    this.model = config.model ?? 'gemini-3.6-flash';
   }
 
   /**

@@ -31,7 +31,7 @@ export interface ThemedLLMProxy {
    * Called synchronously on page load so the UI can show connection state
    * without waiting for a chat request.
    *
-   * @returns provider name (e.g. "openai"), model (e.g. "gpt-4o-mini"), and
+   * @returns provider name (e.g. "openai"), model (e.g. "gpt-5.6-luna"), and
    *          whether a valid API key is configured in the extension.
    */
   getInfo?(): {

@@ -37,7 +37,7 @@ export class DeepSeekProvider extends BaseAIProvider {
   constructor(config: AIProviderConfig) {
     super(config);
     this.baseURL = config.baseURL ?? 'https://api.deepseek.com/v1';
-    this.model = config.model ?? 'deepseek-chat';
+    this.model = config.model ?? 'deepseek-v4-flash';
   }
 
   /**

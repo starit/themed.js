@@ -46,12 +46,12 @@ Common model IDs:
 
 | Provider | Models |
 |----------|--------|
-| openai   | `gpt-5.5` `gpt-4.1` `gpt-4o-2024-11-20` `o4-mini` |
-| claude   | `claude-opus-4-7` `claude-sonnet-4-6` `claude-haiku-4-5-20251001` |
-| gemini   | `gemini-2.5-pro` `gemini-2.5-flash` |
-| groq     | `llama-3.3-70b-versatile` |
-| moonshot | `kimi-k2-turbo-preview` |
-| deepseek | `deepseek-chat` |
+| openai   | `gpt-5.6-luna` `gpt-5.6-terra` `gpt-5.6-sol` |
+| claude   | `claude-sonnet-5` `claude-opus-5` `claude-haiku-4-5` |
+| gemini   | `gemini-3.6-flash` `gemini-3.5-flash` `gemini-3.5-flash-lite` |
+| groq     | `openai/gpt-oss-120b` `openai/gpt-oss-20b` |
+| moonshot | `kimi-k3` `kimi-k2.6` `kimi-k2.7-code` |
+| deepseek | `deepseek-v4-flash` `deepseek-v4-pro` |
 
 ## Run
 

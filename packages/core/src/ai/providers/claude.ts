@@ -30,7 +30,7 @@ export class ClaudeProvider extends BaseAIProvider {
   constructor(config: AIProviderConfig) {
     super(config);
     this.baseURL = config.baseURL ?? 'https://api.anthropic.com/v1';
-    this.model = config.model ?? 'claude-sonnet-4-6';
+    this.model = config.model ?? 'claude-sonnet-5';
   }
 
   /**

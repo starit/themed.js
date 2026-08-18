@@ -27,7 +27,7 @@ interface MoonshotResponse {
  * Moonshot (Kimi) provider for AI theme generation
  * Uses Moonshot AI's OpenAI-compatible API
  *
- * @see https://platform.moonshot.ai/docs/api/chat
+ * @see https://platform.kimi.ai/docs/models
  */
 export class MoonshotProvider extends BaseAIProvider {
   readonly name = 'moonshot';
@@ -37,7 +37,7 @@ export class MoonshotProvider extends BaseAIProvider {
   constructor(config: AIProviderConfig) {
     super(config);
     this.baseURL = config.baseURL ?? 'https://api.moonshot.ai/v1';
-    this.model = config.model ?? 'kimi-k2-turbo-preview';
+    this.model = config.model ?? 'kimi-k3';
   }
 
   /**

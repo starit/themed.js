@@ -25,9 +25,9 @@ interface GroqResponse {
 
 /**
  * Groq provider for AI theme generation
- * Uses Llama models accelerated by Groq (OpenAI-compatible API)
+ * Uses GroqCloud production models (OpenAI-compatible API)
  *
- * @see https://console.groq.com/docs
+ * @see https://console.groq.com/docs/models
  */
 export class GroqProvider extends BaseAIProvider {
   readonly name = 'groq';
@@ -37,7 +37,7 @@ export class GroqProvider extends BaseAIProvider {
   constructor(config: AIProviderConfig) {
     super(config);
     this.baseURL = config.baseURL ?? 'https://api.groq.com/openai/v1';
-    this.model = config.model ?? 'llama-3.3-70b-versatile';
+    this.model = config.model ?? 'openai/gpt-oss-120b';
   }
 
   /**

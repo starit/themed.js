@@ -34,7 +34,7 @@ export class OpenAIProvider extends BaseAIProvider {
   constructor(config: AIProviderConfig) {
     super(config);
     this.baseURL = config.baseURL ?? 'https://api.openai.com/v1';
-    this.model = config.model ?? 'gpt-5-mini';
+    this.model = config.model ?? 'gpt-5.6-luna';
   }
 
   /**

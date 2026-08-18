@@ -9,12 +9,12 @@ const getExtension = () =>
 const AI_CONFIG_STORAGE_KEY = 'themed-demo-ai-config';
 
 const PROVIDERS = [
-  { value: 'openai', label: 'OpenAI', model: 'gpt-4o-mini' },
-  { value: 'claude', label: 'Claude', model: 'claude-sonnet-4-6' },
-  { value: 'gemini', label: 'Gemini', model: 'gemini-2.5-flash' },
-  { value: 'groq', label: 'Groq', model: 'llama-3.3-70b-versatile' },
-  { value: 'moonshot', label: 'Moonshot', model: 'kimi-k2-turbo-preview' },
-  { value: 'deepseek', label: 'DeepSeek', model: 'deepseek-chat' },
+  { value: 'openai', label: 'OpenAI', model: 'gpt-5.6-luna' },
+  { value: 'claude', label: 'Claude', model: 'claude-sonnet-5' },
+  { value: 'gemini', label: 'Gemini', model: 'gemini-3.6-flash' },
+  { value: 'groq', label: 'Groq', model: 'openai/gpt-oss-120b' },
+  { value: 'moonshot', label: 'Moonshot', model: 'kimi-k3' },
+  { value: 'deepseek', label: 'DeepSeek', model: 'deepseek-v4-flash' },
   { value: 'extension', label: 'Extension (Chrome)', model: '' },
 ] as const;
 

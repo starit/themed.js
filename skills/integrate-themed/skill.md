@@ -52,7 +52,7 @@ const themed = createThemed({
   ai: {                           // optional — omit if no AI needed
     provider: 'openai',           // 'openai' | 'claude' | 'gemini' | 'groq' | 'moonshot' | 'deepseek' | 'custom' | 'extension'
     apiKey: process.env.OPENAI_API_KEY,
-    model: 'gpt-4o-mini',         // optional, each provider has a sensible default
+    model: 'gpt-5.6-luna',        // optional, each provider has a sensible default
   },
   storage: {                      // optional — defaults shown
     type: 'localStorage',         // 'localStorage' | 'indexedDB' | 'none'

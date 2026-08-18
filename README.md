@@ -328,47 +328,47 @@ Light · Dark · Ocean · Forest · Sunset · Midnight · Rose · Cyberpunk
 ## AI Providers
 
 ```typescript
-// OpenAI (default: gpt-4o-mini)
+// OpenAI (default: gpt-5.6-luna)
 ai: {
   provider: 'openai',
   apiKey: 'sk-xxx',
-  model: 'gpt-4o-mini', // optional: gpt-4o, gpt-4-turbo, etc.
+  model: 'gpt-5.6-luna', // optional: gpt-5.6-terra, gpt-5.6-sol
 }
 
-// Claude (default: claude-sonnet-4-6)
+// Claude (default: claude-sonnet-5)
 ai: {
   provider: 'claude',
   apiKey: 'sk-xxx',
-  model: 'claude-sonnet-4-6', // optional: claude-opus-4-6, claude-haiku-4-5
+  model: 'claude-sonnet-5', // optional: claude-opus-5, claude-haiku-4-5
 }
 
-// Google Gemini (default: gemini-2.5-flash)
+// Google Gemini (default: gemini-3.6-flash)
 ai: {
   provider: 'gemini',
   apiKey: 'xxx', // from Google AI Studio
-  model: 'gemini-2.5-flash', // optional: gemini-2.5-pro, gemini-2.0-flash
+  model: 'gemini-3.6-flash', // optional: gemini-3.5-flash, gemini-3.5-flash-lite
 }
 
-// Groq - Llama models (default: llama-3.3-70b-versatile)
+// Groq (default: openai/gpt-oss-120b)
 ai: {
   provider: 'groq',
   apiKey: 'gsk_xxx', // from console.groq.com
-  model: 'llama-3.3-70b-versatile',
+  model: 'openai/gpt-oss-120b', // optional: openai/gpt-oss-20b
 }
 
-// Moonshot/Kimi (default: kimi-k2-turbo-preview)
+// Moonshot/Kimi (default: kimi-k3)
 ai: {
   provider: 'moonshot',
-  apiKey: 'xxx', // from platform.moonshot.ai
-  model: 'kimi-k2-turbo-preview',
+  apiKey: 'xxx', // from platform.kimi.ai
+  model: 'kimi-k3', // optional: kimi-k2.6, kimi-k2.7-code
   baseURL: 'https://api.moonshot.cn/v1', // optional: use .cn for China
 }
 
-// DeepSeek (default: deepseek-chat)
+// DeepSeek (default: deepseek-v4-flash)
 ai: {
   provider: 'deepseek',
   apiKey: 'xxx', // from platform.deepseek.com
-  model: 'deepseek-chat', // optional: deepseek-reasoner
+  model: 'deepseek-v4-flash', // optional: deepseek-v4-pro
 }
 
 // Custom endpoint
