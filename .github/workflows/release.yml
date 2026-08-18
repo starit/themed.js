@@ -40,3 +40,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # setup-node writes .npmrc with ${NODE_AUTH_TOKEN}; without this, npm PUT returns E404 for scoped packages.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
